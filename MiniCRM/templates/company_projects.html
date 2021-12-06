@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Company projects{% endblock %}
+
+{% block content %}
+
+       <div class="container">
+            <div class="row">
+              {% for project in project_company_list %}
+                <div class="card col-12 mx-auto col-md-5 col-lg-4">
+                  <div class="card-body">
+                    <h5 class="card-title"><a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a></h5>
+                    <p class="card-title">Company: <a href="{% url 'company_detail' project.company.pk %}">{{ project.company.name }}</a></p>
+                    <p class="card-text">Description: {{ project.description | safe | striptags | linebreaks | slice:":300" }}</p>
+                    <p class="card-text">Start dates: {{ project.start_dates }}</p>
+                    <p class="card-text">Deadline: {{ project.deadline }}</p>
+                    <p class="card-text">Price: ${{ project.price }}</p>
+                  <br>
+                    <a href="{% url 'project-update' project.pk %}">
+                      <button type="button" class="btn btn-primary" style="margin-top: 15px">
+                          Change project data
+                      </button>
+                    </a>
+                  </div>
+                </div>
+                <br>
+              {% endfor %}
+            </div>
+       </div>
+
+  </div>
+{% endblock %}

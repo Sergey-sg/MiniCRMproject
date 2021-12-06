@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <form action="{% url 'home' %}" method="get">
+      <div class="dropdown">
+        <span>Sort by:</span>
+        <button value="Sorted" class="dropdown-toggle btn btn-info" type="submit" data-toggle="dropdown" id="menu2">
+            <span class="dropdown-label">Sort by</span>
+        </button>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">
+           <li class="dropdown-item"><input type="radio" name="orderby" value="date_created">  ascending creation date</li>
+           <li class="dropdown-item"><input type="radio" name="orderby" value="-date_created">  descending date of creation</li>
+           <li class="dropdown-item"><input type="radio" name="orderby" value="name">  by name</li>
+           <li class="dropdown-item"><input type="radio" name="orderby" value="-name">  by name in reverse order</li>
+           <li class="dropdown-item"><input class="btn btn-info" type="submit" value="Sort"></li>
+        </ul>
+      </div>
+        <br>
+    </form>
+
+       <div class="container">
+            <div class="row">
+              {% for company in company_list %}
+                <div class="card col-12 mx-auto col-md-5 col-lg-4" style="">
+                  <div class="card-body">
+                    <h5 class="card-title"><a href="{% url 'company_detail' company.pk %}">{{ company.name }}</a> </h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ company.contact_person }} - {{ company.position_person }}</h6>
+                    <p class="card-text">{{ company.description | safe | striptags | linebreaks | slice:":300" }}</p>
+                    <p class="card-text">{{ company.date_created }}</p>
+                    <p class="card-text">{{ company.date_modified }}</p>
+                    <p class="card-text">{{ company.address }}</p>
+                    {% for phone in phone_list %}
+                        {% if phone.company.name == company.name %}
+                            <p class="card-text">{{ phone.phone_number }}</p>
+                        {% endif %}
+                    {% endfor %}
+                    {% for email in email_list %}
+                        {% if email.company.name == company.name %}
+                            <a class="card-text" href="mailto:{{ email.email }}">{{ email.email }}</a>
+                        {% endif %}
+                    {% endfor %}
+                  <br>
+                      <a href="{% url 'company-projects' company.pk %}">
+                          <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
+                              Company projects
+                          </button>
+                      </a>
+                      <a href="{% url 'company-update' company.pk %}">
+                          <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
+                              Change company data
+                          </button>
+                      </a>
+                  </div>
+                </div>
+                <br>
+              {% endfor %}
+            </div>
+       </div>
+
+  </div>
+{% endblock %}

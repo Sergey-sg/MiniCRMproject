@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Personal area{% endblock %}
+
+{% block content %}
+    {{ request.user.first_name }}
+    <br>
+    {{ request.user.last_name }}
+    <br>
+    1. Фотография пользователя
+    2. Редактирования базовых данных пользователя:
+    Имя
+    Фамилия
+    Email
+    Пароль
+    3. Возможность добавлять и редактировать записи CRM
+    4. Список добавленных менеджером записей
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Change company{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<div class="container" style="padding-bottom: 30px">
+    <form action="" method="post">
+        {% csrf_token %}
+        <table>
+            {{ form.as_p }}
+{#            <p>#}
+{#                <label>phone number: </label>#}
+{#                {% for phone in second_model %}#}
+{#                    {% if phone.company.pk == company.pk %}#}
+{#                        <input type="text" name="phone number" value="{{ phone.phone_number }}" />#}
+{#                    {% endif %}#}
+{#                {%  endfor %}#}
+{#            </p>#}
+        </table>
+        <input type="submit" value="Submit" />
+    </form>
+</div>
+{#    <form method="POST">#}
+{#        {% csrf_token %}#}
+{#        <p>#}
+{#            <label>company name</label><br>#}
+{#            <input type="text" name="name" value="{{company.name}}" />#}
+{#        </p>#}
+{#        <p>#}
+{#            <label>description</label><br>#}
+{#            <input type="text" name="description" value="{{ company.description }}" />#}
+{#        </p>#}
+{#        <p>#}
+{#            <label>contact person</label><br>#}
+{#            <input type="text" name="contact person" value="{{ company.contact_person }}" />#}
+{#        </p>#}
+{#            company.contact_person = request.POST.get("contact person")#}
+{#            company.position_person = request.POST.get("position person")#}
+{#            company.address = request.POST.get("address")#}
+{#        <input type="submit" value="Сохранить" >#}
+{#    </form>#}
+
+{% endblock %}

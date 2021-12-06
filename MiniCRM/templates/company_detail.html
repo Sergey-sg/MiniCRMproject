@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto">
+    <h1 class="text-center">{{ company.name }}</h1>
+            <br>
+            <h3>{{ company.contact_person }} - {{ company.position_person }}</h3>
+                {% for phone in phone_list %}
+                    {% if phone.company.name == company.name %}
+                        <p>{{ phone.phone_number }}</p>
+                    {% endif %}
+                {% endfor %}
+                {% for email in email_list %}
+                    {% if email.company.name == company.name %}
+                        <a class="text-center" href="mailto:{{ email.email }}">{{ email.email }}</a>
+                    {% endif %}
+                {% endfor %}
+            <br>
+            <h3 class="text-center">About company</h3>
+            <br>
+            <p class="text-center">{{ company.description | safe | striptags| linebreaks }}</p>
+            <div class="text-muted">date registration: <b class="text-dark">{{ company.date_created }}</b></div>
+            <div class="text-muted">date last corrects: <b class="text-dark">{{ company.date_modified }}</b></div>
+            <br>
+            <div class="text-muted">Legal address of the company: <b class="text-dark">{{ company.address }}</b></div>
+            <br>
+            <a href="{% url 'company-projects' company.pk %}">
+                <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
+                    Company projects
+                </button>
+            </a>
+            <br>
+</div>
+{% endblock %}
