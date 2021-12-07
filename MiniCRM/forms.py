@@ -35,7 +35,7 @@ class CompanyOverallForm(forms.ModelForm):
 
     class Meta:
         model = Company
-        fields = '__all__'
+        exclude = ('user',)
 
 
 class ProjectOverallForm(forms.ModelForm):

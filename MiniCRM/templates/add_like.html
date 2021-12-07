@@ -1,0 +1,28 @@
+{% load like %}
+
+{% is_liked company_id as is_liked_bool %}
+{% count_likes company_id as likes_counter %}
+
+{% if is_liked_bool %}
+    {% company_likes_id company_id as company_likes_id %}
+{% endif %}
+
+<form action="{% if not is_liked_bool %}{% url 'add' %}{% else %}{% url 'remove' %}{% endif %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="company_id" value="{{ company_id }}">
+    <input type="hidden" name="user_id" value="{{ request.user.id }}">
+    <input type="hidden" name="url_form" value="{{ request.path }}">
+
+    {% if is_liked_bool %}
+        <input type="hidden" name="company_likes_id" value="{{ company_likes_id }}">
+    {% endif %}
+
+    <button type="submit" class="btn btn-danger">
+        {% if not is_liked_bool %}
+            <i class="fi-xnluxl-heart"></i>
+        {% else %}
+            <i class="fi-xnluxl-heart-solid"></i>
+        {% endif %}
+        <span class="likes-qty">{{ likes_counter }}</span>
+    </button>
+</form>

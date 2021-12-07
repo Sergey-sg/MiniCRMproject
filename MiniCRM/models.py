@@ -123,35 +123,20 @@ class Message(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
 
-class Like(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='add_like', on_delete=models.CASCADE)
-    message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True)
+class CompanyLikes(models.Model):
+    liked_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='add_like', on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True)
     like = models.BooleanField('Like', default=False)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.message}: {self.user} - {self.like}'
+        return f'{self.company}: {self.liked_by} - {self.like}'
 
 
 class InteractionInformationCompany(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     project = models.ForeignKey(ProjectCompany, on_delete=models.CASCADE)
     manager_interaction = models.CharField(max_length=100)
-    # likes = GenericRelation(Like)
-
-    @property
-    def total_likes(self):
-        return self.likes.count()
-
-
-# class Tweet(models.Model):
-#     body = models.CharField(max_length=140)
-#     likes = GenericRelation(Like)
-#     def __str__(self):
-#         return self.body
-#     @property
-#     def total_likes(self):
-#         return self.likes.count()
 
 
 # Канала обращения (Заявка; Письмо; Сайт; Инициатива компании)

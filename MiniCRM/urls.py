@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -12,4 +12,8 @@ urlpatterns = [
     url(r'^project-detail/(?P<pk>\d+)$', views.ProjectCompanyDetailView.as_view(), name='project_detail'),
     url(r'^project/create/$', views.ProjectCompanyCreate.as_view(), name='project-create'),
     url(r'^project/(?P<pk>\d+)/update/$', views.ProjectCompanyUpdateView.as_view(), name='project-update'),
+    path('likes/', include([
+        path('add/', views.AddLikeView.as_view(), name='add'),
+        path('remove/', views.RemoveLikeView.as_view(), name='remove'),
+        ],), name='likes')
 ]

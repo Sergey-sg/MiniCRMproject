@@ -1,10 +1,11 @@
+from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, View
 
 from .forms import CompanyOverallForm, ProjectOverallForm
-from .models import Company, EmailCompany, PhoneCompany, ProjectCompany
+from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -168,10 +169,36 @@ class ProjectCompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
 def personal_area(request):
     return render(request, 'profile.html')
 
-# def like_comment(request, comment):
-#     if request.session.get('has_commented', False):
-#         return HttpResponse("You've already commented.")
-#     c = comments.Comment(comment=new_comment)
-#     c.save()
-#     request.session['has_commented'] = True
-#     return HttpResponse('Thanks for your comment!')
+
+class AddLikeView(View):
+
+    def post(self, request, *args, **kwargs):
+        company_id = int(request.POST.get('company_id'))
+        user_id = int(request.POST.get('user_id'))
+        url_form = request.POST.get('url_form')
+
+        user_inst = User.objects.get(id=user_id)
+        company_inst = Company.objects.get(id=company_id)
+
+        try:
+            company_like_inst = CompanyLikes.objects.get(company=company_inst, liked_by=user_inst)
+        except Exception as e:
+            company_like = CompanyLikes(company=company_inst,
+                                        liked_by=user_inst,
+                                        like=True
+                                        )
+            company_like.save()
+
+        return redirect(url_form)
+
+
+class RemoveLikeView(View):
+
+    def post(self, request, *args, **kwargs):
+        company_likes_id = int(request.POST.get('company_likes_id'))
+        url_form = request.POST.get('url_form')
+
+        company_like = CompanyLikes.objects.get(id=company_likes_id)
+        company_like.delete()
+
+        return redirect(url_form)

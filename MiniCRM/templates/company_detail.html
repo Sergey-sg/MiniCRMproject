@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container mx-auto">
-    <h1 class="text-center">{{ company.name }}</h1>
+    <h1 class="text-center">{{ company.name }}</h1>{% include 'add_like.html' with company_id=company.pk %}
             <br>
             <h3>{{ company.contact_person }} - {{ company.position_person }}</h3>
                 {% for phone in phone_list %}
