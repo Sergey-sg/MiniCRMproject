@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Change company{% endblock %}
+{% block title %}Create company{% endblock %}
 
 {% block content %}
 {% load static %}
@@ -8,10 +8,10 @@
     <form action="" method="post">
         {% csrf_token %}
         <table>
-            {{ company_form }}
-            {{ formset_email }}
-            {{ formset_phone }}
+            {{ form.as_p }}
             <input type="hidden" name="user" value="{{ request.user.id }}">
+            {{ phone_form.as_p }}
+            {{ email_form.as_p }}
         </table>
         <input type="submit" value="Submit" />
     </form>

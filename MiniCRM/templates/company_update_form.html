@@ -9,14 +9,8 @@
         {% csrf_token %}
         <table>
             {{ form.as_p }}
-{#            <p>#}
-{#                <label>phone number: </label>#}
-{#                {% for phone in second_model %}#}
-{#                    {% if phone.company.pk == company.pk %}#}
-{#                        <input type="text" name="phone number" value="{{ phone.phone_number }}" />#}
-{#                    {% endif %}#}
-{#                {%  endfor %}#}
-{#            </p>#}
+            {{ phone_form.as_p }}
+            {{ email_form.as_p }}
         </table>
         <input type="submit" value="Submit" />
     </form>

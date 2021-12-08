@@ -64,62 +64,141 @@ class CompanyDetailView(RedirectPermissionRequiredMixin, DetailView):
 
 
 class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
-    """
-    Implementation of changes in information about the company
-    """
     model = Company
     form_class = CompanyOverallForm
     template_name = 'company_update_form.html'
     permission_required = 'MiniCRM.change_company'
 
+    def get_context_data(self, **kwargs):
+        context = super(CompanyUpdateView, self).get_context_data(**kwargs)
+        if self.request.POST:
+            context['phone_form'] = PhoneCompanyInlineFormset(self.request.POST, instance=self.object)
+            context['email_form'] = EmailCompanyInlineFormset(self.request.POST, instance=self.object)
+        else:
+            context['phone_form'] = PhoneCompanyInlineFormset(instance=self.object)
+            context['email_form'] = EmailCompanyInlineFormset(instance=self.object)
+        return context
+
     def form_valid(self, form):
-        super(CompanyUpdateView, self).form_valid(form)
-        company = form.instance
-        phone_company = company.phonecompany_set.first()
-        phone_company.phone_number = form.cleaned_data.get('phone_number')
-        # phone_company.phone_number = form.fields()
-        phone_company.save()
-        email_company = company.emailcompany_set.first()
-        email_company.email = form.cleaned_data.get('email')
-        email_company.save()
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(reverse_lazy('home'))
+        context = self.get_context_data()
+        phone_form = context['phone_form']
+        email_form = context['email_form']
+        if phone_form.is_valid() and email_form.is_valid():
+            self.object = form.save()
+            phone_form.instance = self.object
+            phone_form.save()
+            email_form.instance = self.object
+            email_form.save()
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class CompanyCreateView(CreateView):
+
+    model = Company
+    form_class = CompanyOverallForm
+    template_name = 'company_create.html'
+    permission_required = 'MiniCRM.change_company'
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        phone_form = PhoneCompanyInlineFormset()
+        email_form = EmailCompanyInlineFormset()
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  phone_form=phone_form,
+                                  email_form=email_form))
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        phone_form = PhoneCompanyInlineFormset(self.request.POST)
+        email_form = EmailCompanyInlineFormset(self.request.POST)
+        if form.is_valid() and phone_form.is_valid() and email_form.is_valid():
+            return self.form_valid(form, phone_form, email_form)
+        else:
+            return self.form_invalid(form, phone_form, email_form)
+
+    def form_valid(self, form, phone_form, email_form):
+        self.object = form.save()
+        phone_form.instance = self.object
+        phone_form.save()
+        email_form.instance = self.object
+        email_form.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, phone_form, email_form):
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  phone_form=phone_form,
+                                  email_form=email_form))
 
 
 
-def company_create(request):
-    '''This function creates a brand new Author object with related Book objects using inlineformset_factory'''
-    company = Company()
-    company_form = CompanyOverallForm(instance=company) # setup a form for the parent
-    phone_company_inline_form_set = PhoneCompanyInlineFormset
-    email_company_inline_form_set = EmailCompanyInlineFormset
+# class CompanyCreateView(RedirectPermissionRequiredMixin, UpdateView):
+#     model = Company
+#     form_class = CompanyOverallForm
+#     template_name = 'company_create.html'
+#     permission_required = 'MiniCRM.change_company'
+#
+#     def get_success_url(self):
+#         return reverse_lazy('company_detail', {self.model.pk})
+#
+#     def get_context_data(self, **kwargs):
+#         context = super(CompanyCreateView, self).get_context_data(**kwargs)
+#         context['phone_form'] = PhoneCompanyInlineFormset()
+#         context['email_form'] = EmailCompanyInlineFormset()
+#         return context
+#
+#     def form_valid(self, form):
+#         context = self.get_context_data()
+#         phone_form = context['phone_form']
+#         email_form = context['email_form']
+#         if phone_form.is_valid() and email_form.is_valid():
+#             self.object = form.save()
+#             phone_form.instance = self.object
+#             phone_form.save()
+#             email_form.instance = self.object
+#             email_form.save()
+#         return self.render_to_response(self.get_context_data(form=form))
 
-    if request.method == "POST":
-        company_form = CompanyOverallForm(request.POST)
-        formset_phone = phone_company_inline_form_set(request.POST)
-        formset_email = email_company_inline_form_set(request.POST)
-
-        if company_form.is_valid():
-            created_company = company_form.save(commit=False)
-            formset_phone = phone_company_inline_form_set(request.POST, instance=created_company)
-            formset_email = email_company_inline_form_set(request.POST, instance=created_company)
-
-            if formset_phone.is_valid() and formset_email.is_valid():
-                created_company.save()
-                formset_phone.save()
-                formset_email.save()
-                return HttpResponseRedirect(created_company.get_absolute_url())
-    else:
-        company_form = CompanyOverallForm(instance=company)
-        formset_phone = phone_company_inline_form_set()
-        formset_email = email_company_inline_form_set()
-
-    return render(request, 'company_create.html', {
-        'company_form': company_form,
-        'formset_phone': formset_phone,
-        'formset_email': formset_email
-    })
+# def company_create(request):
+#     """
+#     This function creates a new Company object with related PhoneCompany and EmailCompany objects using inlineformset_factory
+#     """
+#
+#     company = Company()
+#     company_form = CompanyOverallForm(instance=company) # setup a form for the parent
+#     phone_company_inline_form_set = PhoneCompanyInlineFormset
+#     email_company_inline_form_set = EmailCompanyInlineFormset
+#
+#     if request.method == "POST":
+#         company_form = CompanyOverallForm(request.POST)
+#         formset_phone = phone_company_inline_form_set(request.POST)
+#         formset_email = email_company_inline_form_set(request.POST)
+#
+#         if company_form.is_valid():
+#             created_company = company_form.save(commit=False)
+#             formset_phone = phone_company_inline_form_set(request.POST, instance=created_company)
+#             formset_email = email_company_inline_form_set(request.POST, instance=created_company)
+#
+#             if formset_phone.is_valid() and formset_email.is_valid():
+#                 created_company.save()
+#                 formset_phone.save()
+#                 formset_email.save()
+#                 return HttpResponseRedirect(created_company.get_absolute_url())
+#     else:
+#         company_form = CompanyOverallForm(instance=company)
+#         formset_phone = phone_company_inline_form_set()
+#         formset_email = email_company_inline_form_set()
+#
+#     return render(request, 'company_create.html', {
+#         'company_form': company_form,
+#         'formset_phone': formset_phone,
+#         'formset_email': formset_email
+#     })
 
 
 
