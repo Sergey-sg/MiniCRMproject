@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, View
 
-from .forms import CompanyOverallForm, ProjectOverallForm
+from .forms import CompanyOverallForm, ProjectOverallForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset
 from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -87,28 +87,42 @@ class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
             return HttpResponseRedirect(reverse_lazy('home'))
 
 
-class CompanyCreate(RedirectPermissionRequiredMixin, CreateView):
-    """
-    Implementation of the creation of a new company
-    """
-    model = Company
-    # form_class = CompanyOverallForm
-    fields = '__all__'
-    template_name = 'company_create.html'
-    permission_required = 'MiniCRM.change_company'
 
-    def form_valid(self, form):
-        super(CompanyCreate, self).form_valid(form)
-        company = form.instance
-        phone_company = company.phonecompany_set.first()
-        phone_company.phone_number = form.phone_number.get('phone_number')
-        phone_company.save()
-        email_company = company.emailcompany_set
-        email_company.email = form.email.get('email')
-        email_company.save()
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(reverse_lazy('home'))
+def company_create(request):
+    '''This function creates a brand new Author object with related Book objects using inlineformset_factory'''
+    company = Company()
+    company_form = CompanyOverallForm(instance=company) # setup a form for the parent
+    phone_company_inline_form_set = PhoneCompanyInlineFormset
+    email_company_inline_form_set = EmailCompanyInlineFormset
+
+    if request.method == "POST":
+        company_form = CompanyOverallForm(request.POST)
+        formset_phone = phone_company_inline_form_set(request.POST)
+        formset_email = email_company_inline_form_set(request.POST)
+
+        if company_form.is_valid():
+            created_company = company_form.save(commit=False)
+            formset_phone = phone_company_inline_form_set(request.POST, instance=created_company)
+            formset_email = email_company_inline_form_set(request.POST, instance=created_company)
+
+            if formset_phone.is_valid() and formset_email.is_valid():
+                created_company.save()
+                formset_phone.save()
+                formset_email.save()
+                return HttpResponseRedirect(created_company.get_absolute_url())
+    else:
+        company_form = CompanyOverallForm(instance=company)
+        formset_phone = phone_company_inline_form_set()
+        formset_email = email_company_inline_form_set()
+
+    return render(request, 'company_create.html', {
+        'company_form': company_form,
+        'formset_phone': formset_phone,
+        'formset_email': formset_email
+    })
+
+
+
 
 
 class ProjectCompanyListView(RedirectPermissionRequiredMixin, ListView):

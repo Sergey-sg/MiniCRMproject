@@ -19,10 +19,15 @@
 
     <button type="submit" class="btn btn-danger">
         {% if not is_liked_bool %}
-            <i class="fi-xnluxl-heart"></i>
+            <span class="material-icons">
+                favorite
+            </span>
         {% else %}
-            <i class="fi-xnluxl-heart-solid"></i>
+            <span class="material-icons">
+                favorite_border
+            </span>
         {% endif %}
         <span class="likes-qty">{{ likes_counter }}</span>
     </button>
 </form>
+<br>

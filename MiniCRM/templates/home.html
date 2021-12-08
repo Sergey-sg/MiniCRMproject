@@ -23,7 +23,7 @@
        <div class="container">
             <div class="row">
               {% for company in company_list %}
-                <div class="card col-12 mx-auto col-md-5 col-lg-4" style="">
+                <div class="card col-12 mx-auto col-md-5 col-lg-4" style="margin: 15px">
                   <div class="card-body">
                     <h5 class="card-title"><a href="{% url 'company_detail' company.pk %}">{{ company.name }}</a> </h5>
                     {% include 'add_like.html' with company_id=company.pk %}
@@ -61,4 +61,5 @@
        </div>
 
   </div>
+
 {% endblock %}
