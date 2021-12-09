@@ -20,7 +20,7 @@ attributes:
      position_person (str): Position of the contact person
      address (str): Company address
     """
-    name = models.CharField(max_length=300)
+    name = models.CharField(max_length=300, unique=True)
     description = RichTextField(blank=True, null=True, help_text="Company description")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -53,7 +53,7 @@ class PhoneCompany(models.Model):
     """
     phone_regex = RegexValidator(regex=r'^\+380\d{9}',
                                  message='Phone number must be in format: "+380999999999". Up to "+380" and 9 digits.')
-    phone_number = models.CharField(validators=[phone_regex], max_length=13, blank=True,
+    phone_number = models.CharField(validators=[phone_regex], unique=True, max_length=13, blank=True,
                                     help_text='Phone number must be in format: "+380999999999"')
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -69,7 +69,7 @@ class EmailCompany(models.Model):
         email (str): email of company
         company (class Company): communication with the Company
     """
-    email = models.EmailField(max_length=254,)
+    email = models.EmailField(max_length=254, unique=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -89,7 +89,7 @@ class ProjectCompany(models.Model):
              price (int): price project
     """
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
-    name = models.CharField(max_length=300)
+    name = models.CharField(max_length=300, unique=True)
     description = RichTextField(blank=True, null=True, help_text="Project description")
     start_dates = models.DateField(null=True, blank=True, help_text="Enter the date of start project")
     deadline = models.DateField(null=True, blank=True, help_text="Enter the date of deadline")
@@ -115,12 +115,38 @@ class ProjectCompany(models.Model):
         return self.name
 
 
+class Communication(models.Model):
+    communication = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.communication
+
+
 class Message(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='add_message', on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    manager = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='manager', on_delete=models.CASCADE)
     project = models.ForeignKey(ProjectCompany, on_delete=models.CASCADE)
     message = RichTextField()
     created = models.DateTimeField(auto_now_add=True)
+    communication_options = models.ForeignKey(Communication, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.manager}--{self.project}--{self.created}'
+
+    def get_absolute_url(self):
+        """
+        Returns the URL to access the commented instance of the project.
+        """
+        return reverse('message_detail', args=[str(self.pk)])
+
+
+class MessageLike(models.Model):
+    liked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True)
+    like = models.BooleanField('Like', default=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.message}: {self.liked_by} - {self.like}'
 
 
 class CompanyLikes(models.Model):

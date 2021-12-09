@@ -1,0 +1,33 @@
+{% load like %}
+
+{% is_liked_message message_id as is_liked_bool %}
+{#{% count_likes company_id as likes_counter %}#}
+
+{% if is_liked_bool %}
+    {% message_likes_id message_id as message_like_id %}
+{% endif %}
+
+<form action="{% if not is_liked_bool %}{% url 'add-message-like' %}{% else %}{% url 'remove-message-like' %}{% endif %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="message_id" value="{{ message_id }}">
+    <input type="hidden" name="user_id" value="{{ request.user.id }}">
+    <input type="hidden" name="url_form" value="{{ request.path }}">
+
+    {% if is_liked_bool %}
+        <input type="hidden" name="company_likes_id" value="{{ message_like_id }}">
+    {% endif %}
+
+    <button type="submit" class="btn btn-danger">
+        {% if not is_liked_bool %}
+            <span class="material-icons">
+                favorite
+            </span>
+        {% else %}
+            <span class="material-icons">
+                favorite_border
+            </span>
+        {% endif %}
+{#        <span class="likes-qty">{{ likes_counter }}</span>#}
+    </button>
+</form>
+<br>

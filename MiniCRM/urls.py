@@ -15,5 +15,12 @@ urlpatterns = [
     path('likes/', include([
         path('add/', views.AddLikeView.as_view(), name='add'),
         path('remove/', views.RemoveLikeView.as_view(), name='remove'),
-        ],), name='likes')
+        ],), name='likes'),
+    url(r'^project/(?P<pk>\d+)/new-message/$', views.MessageCreateView.as_view(), name='message_create'),
+    path('likes/', include([
+        path('add/message-like/', views.AddMessageLikeView.as_view(), name='add-message-like'),
+        path('remove/message-like/', views.RemoveMessageLikeView.as_view(), name='remove-message-like'),
+        ],), name='likes'),
+    url(r'^message-detail/(?P<pk>\d+)/$', views.MessageDetailView.as_view(), name='message_detail'),
+    url(r'^message/(?P<pk>\d+)/update/$', views.MessageUpdateView.as_view(), name='message-update'),
 ]

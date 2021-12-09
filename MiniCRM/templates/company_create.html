@@ -9,7 +9,6 @@
         {% csrf_token %}
         <table>
             {{ form.as_p }}
-            <input type="hidden" name="user" value="{{ request.user.id }}">
             {{ phone_form.as_p }}
             {{ email_form.as_p }}
         </table>

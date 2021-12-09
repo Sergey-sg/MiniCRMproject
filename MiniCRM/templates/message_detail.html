@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Company projects{% endblock %}
+
+{% block content %}
+
+    <div class="container bg-$gray-200" style="margin-top: 15px">
+        <p>manager: {{ message.manager }} -- company: {{ message.project.company }} -- project: {{ message.project }}</p>
+        <p class="text-muted">message created: {{ message.created }}</p>
+        <p class="text-muted">communication options: {{ message.communication_options }}</p>
+        <p>{{ message.message | safe | striptags| linebreaks }}</p>
+        <a href="{% url 'message-update' message.pk %}">
+            <button type="button" class="btn btn-primary" style="margin-left: 15px; float: right">
+                change commit
+            </button>
+        </a>
+        {% include 'add_like_message.html' with message_id=message.pk %}
+    </div>
+{% endblock %}

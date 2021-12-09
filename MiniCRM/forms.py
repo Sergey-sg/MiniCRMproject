@@ -3,7 +3,7 @@ from django import forms
 from django.core.validators import RegexValidator
 from django.forms import fields, inlineformset_factory
 
-from .models import Company, ProjectCompany, PhoneCompany, EmailCompany
+from .models import Company, ProjectCompany, PhoneCompany, EmailCompany, Message
 
 
 class CompanyOverallForm(forms.ModelForm):
@@ -48,3 +48,13 @@ class ProjectOverallForm(forms.ModelForm):
     class Meta:
         model = ProjectCompany
         fields = '__all__'
+
+
+class MessageForm(forms.ModelForm):
+    """
+    Form for creat message of project.
+    """
+    class Meta:
+        model = Message
+        fields = '__all__'
+

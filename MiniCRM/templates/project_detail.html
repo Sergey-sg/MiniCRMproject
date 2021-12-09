@@ -2,7 +2,7 @@
 {% block title %}{{ projectcompany.name }}{% endblock %}
 
 {% block content %}
-<div class="container mx-auto">
+<div class="container mx-auto" style="margin: 15px">
     <h1 class="text-center">{{ projectcompany.name }}</h1>
             <br>
             <h3>Performing company: <a href="{% url 'company_detail' projectcompany.company.pk %}">{{ projectcompany.company.name }}</a></h3>
@@ -15,4 +15,30 @@
             <br>
             <div class="text-muted">Price: <b class="text-dark">${{ projectcompany.price }}</b></div>
 </div>
+{% if messages %}
+    <div class="container">
+            <a href="{% url 'message_create' projectcompany.pk %}">
+                <button type="button" class="btn btn-primary" style="margin-top: 15px">
+                    commit project
+                </button>
+            </a>
+            <br>
+            <h3>Message: </h3>
+            {% for message in messages %}
+                <div class="container bg-$gray-200" style="margin-top: 15px">
+                    <p>manager: {{ message.manager }} -- company: {{ message.project.company }} -- project: {{ message.project }}</p>
+                    <p class="text-muted">message created: {{ message.created }}</p>
+                    <p class="text-muted">communication options: {{ message.communication_options }}</p>
+                    <p>{{ message.message | safe | striptags| linebreaks }}</p>
+                    <a href="{% url 'message_detail' projectcompany.pk %}">
+                        <button type="button" class="btn btn-primary" style="margin-left: 15px; float: right">
+                            detail commit
+                        </button>
+                    </a>
+                    {% include 'add_like_message.html' with message_id=message.pk %}
+                </div>
+            {% endfor %}
+        <br>
+    </div>
+{% endif %}
 {% endblock %}

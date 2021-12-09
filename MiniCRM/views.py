@@ -4,8 +4,9 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, View
 
-from .forms import CompanyOverallForm, ProjectOverallForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset
-from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes
+from .forms import CompanyOverallForm, ProjectOverallForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset, \
+    MessageForm
+from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes, Message, MessageLike
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -89,7 +90,7 @@ class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
             phone_form.save()
             email_form.instance = self.object
             email_form.save()
-        return self.render_to_response(self.get_context_data(form=form))
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class CompanyCreateView(CreateView):
@@ -101,8 +102,9 @@ class CompanyCreateView(CreateView):
 
     def get(self, request, *args, **kwargs):
         self.object = None
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+        # form_class = self.get_form_class()
+        # form = self.get_form(form_class)
+        form = CompanyOverallForm(initial={'user': self.request.user},)
         phone_form = PhoneCompanyInlineFormset()
         email_form = EmailCompanyInlineFormset()
         return self.render_to_response(
@@ -121,87 +123,18 @@ class CompanyCreateView(CreateView):
         else:
             return self.form_invalid(form, phone_form, email_form)
 
-    def form_valid(self, form, phone_form, email_form):
+    def form_valid(self, form, *args, **kwargs):
         self.object = form.save()
-        phone_form.instance = self.object
-        phone_form.save()
-        email_form.instance = self.object
-        email_form.save()
+        for arg in args:
+            arg.instance = self.object
+            arg.save()
         return HttpResponseRedirect(self.get_success_url())
 
-    def form_invalid(self, form, phone_form, email_form):
+    def form_invalid(self, form, *args, **kwargs):
         return self.render_to_response(
             self.get_context_data(form=form,
-                                  phone_form=phone_form,
-                                  email_form=email_form))
-
-
-
-# class CompanyCreateView(RedirectPermissionRequiredMixin, UpdateView):
-#     model = Company
-#     form_class = CompanyOverallForm
-#     template_name = 'company_create.html'
-#     permission_required = 'MiniCRM.change_company'
-#
-#     def get_success_url(self):
-#         return reverse_lazy('company_detail', {self.model.pk})
-#
-#     def get_context_data(self, **kwargs):
-#         context = super(CompanyCreateView, self).get_context_data(**kwargs)
-#         context['phone_form'] = PhoneCompanyInlineFormset()
-#         context['email_form'] = EmailCompanyInlineFormset()
-#         return context
-#
-#     def form_valid(self, form):
-#         context = self.get_context_data()
-#         phone_form = context['phone_form']
-#         email_form = context['email_form']
-#         if phone_form.is_valid() and email_form.is_valid():
-#             self.object = form.save()
-#             phone_form.instance = self.object
-#             phone_form.save()
-#             email_form.instance = self.object
-#             email_form.save()
-#         return self.render_to_response(self.get_context_data(form=form))
-
-# def company_create(request):
-#     """
-#     This function creates a new Company object with related PhoneCompany and EmailCompany objects using inlineformset_factory
-#     """
-#
-#     company = Company()
-#     company_form = CompanyOverallForm(instance=company) # setup a form for the parent
-#     phone_company_inline_form_set = PhoneCompanyInlineFormset
-#     email_company_inline_form_set = EmailCompanyInlineFormset
-#
-#     if request.method == "POST":
-#         company_form = CompanyOverallForm(request.POST)
-#         formset_phone = phone_company_inline_form_set(request.POST)
-#         formset_email = email_company_inline_form_set(request.POST)
-#
-#         if company_form.is_valid():
-#             created_company = company_form.save(commit=False)
-#             formset_phone = phone_company_inline_form_set(request.POST, instance=created_company)
-#             formset_email = email_company_inline_form_set(request.POST, instance=created_company)
-#
-#             if formset_phone.is_valid() and formset_email.is_valid():
-#                 created_company.save()
-#                 formset_phone.save()
-#                 formset_email.save()
-#                 return HttpResponseRedirect(created_company.get_absolute_url())
-#     else:
-#         company_form = CompanyOverallForm(instance=company)
-#         formset_phone = phone_company_inline_form_set()
-#         formset_email = email_company_inline_form_set()
-#
-#     return render(request, 'company_create.html', {
-#         'company_form': company_form,
-#         'formset_phone': formset_phone,
-#         'formset_email': formset_email
-#     })
-
-
-
+                                  phone_form=args[0],
+                                  email_form=args[1]))
 
 
 class ProjectCompanyListView(RedirectPermissionRequiredMixin, ListView):
@@ -237,6 +170,11 @@ class ProjectCompanyDetailView(RedirectPermissionRequiredMixin, DetailView):
     model = ProjectCompany
     template_name = "project_detail.html"
     permission_required = 'MiniCRM.can_see_companies'
+
+    def get_context_data(self, **kwargs):
+        context = super(ProjectCompanyDetailView, self).get_context_data(**kwargs)
+        context['messages'] = Message.objects.filter(project=self.kwargs.get('pk'))
+        return context
 
 
 class ProjectCompanyCreate(RedirectPermissionRequiredMixin, CreateView):
@@ -295,3 +233,106 @@ class RemoveLikeView(View):
         company_like.delete()
 
         return redirect(url_form)
+
+
+class AddMessageLikeView(View):
+
+    def post(self, request, *args, **kwargs):
+        message_id = int(request.POST.get('message_id'))
+        user_id = int(request.POST.get('user_id'))
+        url_form = request.POST.get('url_form')
+
+        user_inst = User.objects.get(id=user_id)
+        message_inst = Message.objects.get(id=message_id)
+
+        try:
+            message_like_inst = MessageLike.objects.get(message=message_inst, liked_by=user_inst)
+        except Exception as e:
+            message_like = MessageLike(message=message_inst,
+                                        liked_by=user_inst,
+                                        like=True
+                                        )
+            message_like.save()
+
+        return redirect(url_form)
+
+
+class RemoveMessageLikeView(View):
+
+    def post(self, request, *args, **kwargs):
+        message_likes_id = int(request.POST.get('company_likes_id'))
+        url_form = request.POST.get('url_form')
+
+        message_like = MessageLike.objects.get(id=message_likes_id)
+        message_like.delete()
+
+        return redirect(url_form)
+
+
+class MessageCreateView(PermissionRequiredMixin, CreateView):
+    """
+    Implementation of the creation of a new message for project
+    """
+    model = Message
+    form_class = MessageForm
+    template_name = 'message.html'
+    permission_required = 'MiniCRM.change_company'
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form = MessageForm(initial={'manager': self.request.user, 'project': int(self.kwargs.get('pk'))},)
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form, *args, **kwargs):
+        self.object = form.save(commit=False)
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, *args, **kwargs):
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class MessageDetailView(RedirectPermissionRequiredMixin, DetailView):
+    """
+    Generates a detail of message of project
+    """
+
+    model = Message
+    template_name = "message_detail.html"
+    permission_required = 'MiniCRM.change_company'
+
+
+class MessageUpdateView(RedirectPermissionRequiredMixin, UpdateView):
+    """
+    Implementation of changes in information about the message of project.
+    """
+    model = Message
+    form_class = MessageForm
+    template_name = 'message.html'
+    permission_required = 'MiniCRM.change_company'
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form, *args, **kwargs):
+        self.object = form.save()
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, *args, **kwargs):
+        return self.render_to_response(self.get_context_data(form=form))

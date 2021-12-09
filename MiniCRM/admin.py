@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes, Message, InteractionInformationCompany
+from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes, Message, InteractionInformationCompany, Communication
 
 
 admin.site.register(Company)
@@ -9,3 +9,4 @@ admin.site.register(ProjectCompany)
 admin.site.register(CompanyLikes)
 admin.site.register(Message)
 admin.site.register(InteractionInformationCompany)
+admin.site.register(Communication)

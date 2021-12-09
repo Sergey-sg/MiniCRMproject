@@ -3,8 +3,9 @@
 
 {% block content %}
 
-       <div class="container">
-            <div class="row">
+    <div class="container">
+        <div class="row">
+           {% if project_company_list %}
               {% for project in project_company_list %}
                 <div class="card col-12 mx-auto col-md-5 col-lg-4">
                   <div class="card-body">
@@ -15,6 +16,11 @@
                     <p class="card-text">Deadline: {{ project.deadline }}</p>
                     <p class="card-text">Price: ${{ project.price }}</p>
                   <br>
+                    <a href="{% url 'message_create' project.pk %}">
+                      <button type="button" class="btn btn-primary" style="margin-top: 15px">
+                          commit project
+                      </button>
+                    </a>
                     <a href="{% url 'project-update' project.pk %}">
                       <button type="button" class="btn btn-primary" style="margin-top: 15px">
                           Change project data
@@ -24,8 +30,12 @@
                 </div>
                 <br>
               {% endfor %}
-            </div>
-       </div>
+           {% else %}
+                <h4 class="text-center">This company don't have project</h4>
+                <a class="text-center" href="{% url 'home' %}">Back to list company</a>
+           {% endif %}
+        </div>
+    </div>
 
   </div>
 {% endblock %}
