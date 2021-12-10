@@ -17,27 +17,47 @@
 </div>
 {% if messages %}
     <div class="container">
-            <a href="{% url 'message_create' projectcompany.pk %}">
-                <button type="button" class="btn btn-primary" style="margin-top: 15px">
-                    commit project
-                </button>
-            </a>
+{#            <a href="{% url 'message_create' projectcompany.pk %}">#}
+{#                <button type="button" class="btn btn-primary" style="margin-top: 15px">#}
+{#                    commit project#}
+{#                </button>#}
+{#            </a>#}
+            <h3>Comments: </h3>
+            <div class="container" style="padding-bottom: 30px">
+                <form action="{% url 'message_create' projectcompany.pk %}" method="post">
+                    {% csrf_token %}
+                    <table>
+                        <input type="hidden" name="manager" value="{{ request.user.id }}">
+                        <input type="hidden" name="project" value="{{ projectcompany.pk }}">
+                        <tr>Your new comment:<br>{{ message_form.message }}</tr>
+                        <br><tr>communication options: {{ message_form.communication_options }}</tr>
+                    </table>
+                    <input type="submit" value="Submit" />
+                </form>
+            </div>
             <br>
-            <h3>Message: </h3>
             {% for message in messages %}
-                <div class="container bg-$gray-200" style="margin-top: 15px">
-                    <p>manager: {{ message.manager }} -- company: {{ message.project.company }} -- project: {{ message.project }}</p>
-                    <p class="text-muted">message created: {{ message.created }}</p>
-                    <p class="text-muted">communication options: {{ message.communication_options }}</p>
-                    <p>{{ message.message | safe | striptags| linebreaks }}</p>
-                    <a href="{% url 'message_detail' projectcompany.pk %}">
-                        <button type="button" class="btn btn-primary" style="margin-left: 15px; float: right">
-                            detail commit
-                        </button>
-                    </a>
+                <div class="media border p-3" style="margin-bottom: 15px">
+{#                      <img src="" alt="manager-photo" class="mr-3 mt-3 rounded-circle" style="width:60px;">#}
+                    <div class="media-body">
+                        <h4>manager: {{ message.manager }} <small><i class="text-muted">posted on {{ message.created }}</i></small></h4>
+                        <p class="text-muted">project company: {{ message.project.company }} -- project: {{ message.project }}</p>
+                        <p class="text-muted">communication options: {{ message.communication_options }}</p>
+                        <p>{{ message.message | safe | striptags| linebreaks }}</p>
+                        <a href="{% url 'message_detail' message.pk %}">
+                            <button type="button" class="btn btn-primary" style="margin-left: 15px; float: right">
+                                detail commit
+                            </button>
+                        </a>
                     {% include 'add_like_message.html' with message_id=message.pk %}
+                    </div>
                 </div>
             {% endfor %}
+            <a href="{% url 'project_messages' projectcompany.pk %}">
+                <button type="button" class="btn btn-primary">
+                    see all comments
+                </button>
+            </a>
         <br>
     </div>
 {% endif %}

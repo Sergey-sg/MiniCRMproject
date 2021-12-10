@@ -23,4 +23,6 @@ urlpatterns = [
         ],), name='likes'),
     url(r'^message-detail/(?P<pk>\d+)/$', views.MessageDetailView.as_view(), name='message_detail'),
     url(r'^message/(?P<pk>\d+)/update/$', views.MessageUpdateView.as_view(), name='message-update'),
+    url(r'^company/(?P<pk>\d+)/messages/$', views.MessageCompanyListView.as_view(), name='company-messages'),
+    url(r'^project/(?P<pk>\d+)/messages/$', views.MessageProjectListView.as_view(), name='project_messages'),
 ]

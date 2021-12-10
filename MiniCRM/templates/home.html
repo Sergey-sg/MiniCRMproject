@@ -29,12 +29,14 @@
                     {% include 'add_like.html' with company_id=company.pk %}
                     <h6 class="card-subtitle mb-2 text-muted">{{ company.contact_person }} - {{ company.position_person }}</h6>
                     <p class="card-text">{{ company.description | safe | striptags | linebreaks | slice:":300" }}</p>
-                    <p class="card-text">{{ company.date_created }}</p>
-                    <p class="card-text">{{ company.date_modified }}</p>
-                    <p class="card-text">{{ company.address }}</p>
+                    <div class="card-text">{{ company.date_created }}</div>
+                    <div class="card-text">{{ company.date_modified }}</div>
+                    <br>
+                    <div class="card-text">{{ company.address }}</div>
+                    <br>
                     {% for phone in phone_list %}
                         {% if phone.company.name == company.name %}
-                            <p class="card-text">{{ phone.phone_number }}</p>
+                            <div class="card-text">{{ phone.phone_number }}</div>
                         {% endif %}
                     {% endfor %}
                     {% for email in email_list %}
@@ -43,11 +45,11 @@
                         {% endif %}
                     {% endfor %}
                   <br>
-{#                      <a href="{% url 'company-projects' company.pk %}">#}
-{#                          <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">#}
-{#                              Company projects#}
-{#                          </button>#}
-{#                      </a>#}
+                      <a href="{% url 'company-messages' company.pk %}">
+                          <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
+                              Company messages of all projects
+                          </button>
+                      </a>
                       <a href="{% url 'company-projects' company.pk %}">
                           <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
                               Company projects

@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -13,9 +14,13 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 
 
 class RedirectPermissionRequiredMixin(PermissionRequiredMixin):
+    """
+    Checks the access permission and in case of its absence redirects the user to authentication.
+        : return "login" url
+    """
     login_url = reverse_lazy('login')
 
-    def handle_no_permission(self):
+    def handle_no_permission(self) -> login_url:
         return redirect(self.get_login_url())
 
 
@@ -27,10 +32,10 @@ class CompanyListView(RedirectPermissionRequiredMixin, ListView):
     context_object_name = 'company_list'
     template_name = "home.html"
     queryset = Company.objects.all()
-    paginate_by = 2
+    paginate_by = 6
     permission_required = 'MiniCRM.can_see_companies'
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         """adds phone and email lists to the context"""
         context = super(CompanyListView, self).get_context_data(**kwargs)
         context.update({
@@ -39,7 +44,7 @@ class CompanyListView(RedirectPermissionRequiredMixin, ListView):
         })
         return context
 
-    def get_ordering(self):
+    def get_ordering(self) -> model:
         """sorting implementation method"""
         ordering = self.request.GET.get('orderby')
         return ordering
@@ -65,6 +70,9 @@ class CompanyDetailView(RedirectPermissionRequiredMixin, DetailView):
 
 
 class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
+    """
+    Displays a form for editing information about a company.
+    """
     model = Company
     form_class = CompanyOverallForm
     template_name = 'company_update_form.html'
@@ -94,6 +102,9 @@ class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
 
 
 class CompanyCreateView(CreateView):
+    """
+    Displays a form for create a company
+    """
 
     model = Company
     form_class = CompanyOverallForm
@@ -173,13 +184,14 @@ class ProjectCompanyDetailView(RedirectPermissionRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ProjectCompanyDetailView, self).get_context_data(**kwargs)
-        context['messages'] = Message.objects.filter(project=self.kwargs.get('pk'))
+        context['messages'] = Message.objects.filter(project=self.kwargs.get('pk')).order_by('-created')[:5]
+        context['message_form'] = MessageForm()
         return context
 
 
 class ProjectCompanyCreate(RedirectPermissionRequiredMixin, CreateView):
     """
-    Implementation of the creation of a new company
+    Implementation of the creation of a new project
     """
     model = ProjectCompany
     form_class = ProjectOverallForm
@@ -198,10 +210,17 @@ class ProjectCompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
 
 
 def personal_area(request):
+    """
+    Returns a link to the user's personal account
+    :return "profile.html"
+    """
     return render(request, 'profile.html')
 
 
 class AddLikeView(View):
+    """
+    Adds likes of company.
+    """
 
     def post(self, request, *args, **kwargs):
         company_id = int(request.POST.get('company_id'))
@@ -224,6 +243,9 @@ class AddLikeView(View):
 
 
 class RemoveLikeView(View):
+    """
+    Remove likes of company
+    """
 
     def post(self, request, *args, **kwargs):
         company_likes_id = int(request.POST.get('company_likes_id'))
@@ -236,6 +258,9 @@ class RemoveLikeView(View):
 
 
 class AddMessageLikeView(View):
+    """
+    Adds likes to messages.
+    """
 
     def post(self, request, *args, **kwargs):
         message_id = int(request.POST.get('message_id'))
@@ -258,6 +283,9 @@ class AddMessageLikeView(View):
 
 
 class RemoveMessageLikeView(View):
+    """
+    Remove likes of messages
+    """
 
     def post(self, request, *args, **kwargs):
         message_likes_id = int(request.POST.get('company_likes_id'))
@@ -336,3 +364,44 @@ class MessageUpdateView(RedirectPermissionRequiredMixin, UpdateView):
 
     def form_invalid(self, form, *args, **kwargs):
         return self.render_to_response(self.get_context_data(form=form))
+
+
+class MessageCompanyListView(RedirectPermissionRequiredMixin, ListView):
+    """
+    Generates a list of all messages of company projects
+    """
+    model = Message
+    context_object_name = 'messages'
+    template_name = "message_list_company.html"
+    paginate_by = 5
+    permission_required = 'MiniCRM.change_company'
+
+    def get_queryset(self):
+        """
+        Get a filtered list of messages by user request (company id)
+        :return: message list
+        """
+        company_id = self.kwargs.get('pk')  # getting pk from user request
+        object_list = self.model.objects.all().filter(project__company=company_id).order_by('-created')
+        return object_list
+
+
+class MessageProjectListView(RedirectPermissionRequiredMixin, ListView):
+    """
+    Generates a list of messages of project
+    """
+    model = Message
+    context_object_name = 'messages'
+    template_name = "messages-project.html"
+    paginate_by = 5
+    permission_required = 'MiniCRM.change_company'
+
+    def get_queryset(self):
+        """
+        Get a filtered list of messages by user request (project_id)
+        :return: message list
+        """
+        project_id = self.kwargs.get('pk')  # getting pk from user request
+        object_list = self.model.objects.all().filter(project=project_id).order_by('-created')
+        return object_list
+

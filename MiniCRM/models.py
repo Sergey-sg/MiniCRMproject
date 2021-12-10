@@ -116,6 +116,11 @@ class ProjectCompany(models.Model):
 
 
 class Communication(models.Model):
+    """
+    Customer communication options.
+    attributes:
+        communication (str): name of the communication option with the client
+    """
     communication = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
@@ -123,6 +128,15 @@ class Communication(models.Model):
 
 
 class Message(models.Model):
+    """
+    Message model
+    attributes:
+        manager (class User): communication with the User model
+        project (class ProjectCompany): communication with the ProjectCompany model
+        message (str): content of the comment
+        created (datetime): data of create comment
+        communication_options (class Communication): communication with the Communication model
+    """
     manager = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='manager', on_delete=models.CASCADE)
     project = models.ForeignKey(ProjectCompany, on_delete=models.CASCADE)
     message = RichTextField()
@@ -140,6 +154,14 @@ class Message(models.Model):
 
 
 class MessageLike(models.Model):
+    """
+    Model to save the likes of comments
+    attributes:
+        liked_by (class User): communication with the User model
+        message (class Message): communication with the Message model
+        like (bool): mark like, True or False
+        created (datetime): data of create like
+    """
     liked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True)
     like = models.BooleanField('Like', default=False)
@@ -150,6 +172,14 @@ class MessageLike(models.Model):
 
 
 class CompanyLikes(models.Model):
+    """
+    Model to save the likes of company
+    attributes:
+        liked_by (class User): communication with the User model
+        company (class Company): communication with the Company model
+        like (bool): mark like, True or False
+        created (datetime): data of create like
+    """
     liked_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='add_like', on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True)
     like = models.BooleanField('Like', default=False)
