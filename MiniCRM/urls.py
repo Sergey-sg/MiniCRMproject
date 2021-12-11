@@ -25,9 +25,6 @@ urlpatterns = [
     url(r'^message/(?P<pk>\d+)/update/$', views.MessageUpdateView.as_view(), name='message-update'),
     url(r'^company/(?P<pk>\d+)/messages/$', views.MessageCompanyListView.as_view(), name='company-messages'),
     url(r'^project/(?P<pk>\d+)/messages/$', views.MessageProjectListView.as_view(), name='project_messages'),
-    # url(r'^list$', views.message_list, name='message_list_with_filter'),
-    #
-    # path('', views.messages_for_search, name="stockwatcher-home"),
-    path('stocks/', views.message_search, name="stockwatcher-stocks"),
-    #path('about/', views.about, name="stockwatcher-about")]
+    url(r'^project/(?P<pk>\d+)/search-message/', views.message_search, name="search_message"),
+    # url(r'^project-detail/(?P<pk>\d+)$', views.message_search, name='message_search'),
 ]

@@ -407,8 +407,8 @@ class MessageProjectListView(RedirectPermissionRequiredMixin, ListView):
         return object_list
 
 
-def message_search(request):
-    f = MessageFilter(request.GET, queryset=Message.objects.all())
+def message_search(request, pk):
+    f = MessageFilter(request.GET, queryset=Message.objects.filter(project=pk).order_by('-created'))
     paginator = Paginator(f.qs, 5)
     page = request.GET.get('page')
     try:

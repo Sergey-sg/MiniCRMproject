@@ -3,19 +3,6 @@
 
 {% block content %}
 
-{#<div class="container" style="padding-bottom: 30px">#}
-{#    <form action="" method="post">#}
-{#        {% csrf_token %}#}
-{#        <table>#}
-{#            {{ message_filter.form.as_p }}#}
-{#            <input type="submit" value="Submit" />#}
-{#        </table>#}
-{#    </form>#}
-{#    {% for obj in message_filter.qs %}#}
-{#        {{ obj.message }}<br/>#}
-{#    {% endfor %}#}
-{#</div>#}
-
 <div class="container">
   <div class="row" style="padding: 50px;">
     <form method="get">
@@ -25,6 +12,7 @@
   </div>
 
   <div class="row">
+  {% if filter %}
     {% for message in filter %}
     <div class="media border p-3" style="margin-bottom: 15px">
 {#      <img src="" alt="manager-photo" class="mr-3 mt-3 rounded-circle" style="width:60px;">#}
@@ -32,7 +20,7 @@
             <h4>manager: {{ message.manager }} <small><i class="text-muted">posted on {{ message.created }}</i></small></h4>
             <div class="text-muted">project company: {{ message.project.company }} -- project: {{ message.project }}</div>
             <div class="text-muted">communication options: {{ message.communication_options }}</div>
-            <p>{{ message.message | safe | striptags| linebreaks }}</p>
+            <p>{{ message.message | safe | striptags| linebreaks | slice:':400' }}</p>
             <a href="{% url 'message_detail' message.pk %}">
                 <button type="button" class="btn btn-primary" style="margin-left: 15px; float: right">
                     detail commit
@@ -44,16 +32,8 @@
     {% endfor %}
   </div>
 </div>
-{#<div >#}
-{#     <span class="step-links">#}
-{#     {% if filter.has_previous %}#}
-{#     <a href="?page={{ filter.previous_page_number }}"><span style="font-size:30px;float:left;" class="glyphicon glyphicon-arrow-left"> left</span></a>#}
-{#     {% endif %}#}
-{#     {% if filter.has_next %}#}
-{#     <a href="?page={{ filter.next_page_number }}"> <span style="font-size:30px;float:right;" class="glyphicon glyphicon-arrow-right">right </span></a>#}
-{#     {% endif %}#}
-{#     </span>#}
-{#</div>#}
+
+{#{% if is_paginated %}#}
     <div class="container d-grid gap-2">
                   <nav class="mx-auto" aria-label="Page navigation example" style="margin-top: 15px;">
                       <ul class="pagination">
@@ -87,4 +67,8 @@
                       </ul>
                   </nav>
               </div>
+{#{% endif %}#}
+    {% else %}
+    <h3>Comment not found</h3>
+    {% endif %}
 {% endblock %}
