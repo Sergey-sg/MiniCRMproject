@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'MiniCRM.apps.MinicrmConfig',
     'ckeditor',
     'ckeditor_uploader',
+    'django_filters',
 ]
 
 MIDDLEWARE = [

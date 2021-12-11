@@ -1,6 +1,5 @@
 from ckeditor.fields import RichTextField
 from django import forms
-from django.core.validators import RegexValidator
 from django.forms import fields, inlineformset_factory
 
 from .models import Company, ProjectCompany, PhoneCompany, EmailCompany, Message

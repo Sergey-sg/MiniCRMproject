@@ -1,10 +1,11 @@
 from django.contrib.auth.models import User
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, View
 
+from .filters import MessageFilter
 from .forms import CompanyOverallForm, ProjectOverallForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset, \
     MessageForm
 from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes, Message, MessageLike
@@ -405,3 +406,15 @@ class MessageProjectListView(RedirectPermissionRequiredMixin, ListView):
         object_list = self.model.objects.all().filter(project=project_id).order_by('-created')
         return object_list
 
+
+def message_search(request):
+    f = MessageFilter(request.GET, queryset=Message.objects.all())
+    paginator = Paginator(f.qs, 5)
+    page = request.GET.get('page')
+    try:
+        response = paginator.page(page)
+    except PageNotAnInteger:
+        response = paginator.page(1)
+    except EmptyPage:
+        response = paginator.page(paginator.num_pages)
+    return render(request, 'filter.html', {'filter': response, 'filter_form': f})
