@@ -2,12 +2,17 @@
 
 {% is_liked company_id as is_liked_bool %}
 {% count_likes company_id as likes_counter %}
+{% is_disliked company_id as is_disliked_bool %}
+{% count_dislikes company_id as dislikes_counter %}
 
 {% if is_liked_bool %}
     {% company_likes_id company_id as company_likes_id %}
 {% endif %}
+{% if is_disliked_bool %}
+    {% company_dislikes_id company_id as company_dislikes_id %}
+{% endif %}
 
-<form action="{% if not is_liked_bool %}{% url 'add' %}{% else %}{% url 'remove' %}{% endif %}" method="post">
+<form style="float: left" action="{% if not is_liked_bool %}{% url 'add' %}{% else %}{% url 'remove' %}{% endif %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="company_id" value="{{ company_id }}">
     <input type="hidden" name="user_id" value="{{ request.user.id }}">
@@ -17,17 +22,40 @@
         <input type="hidden" name="company_likes_id" value="{{ company_likes_id }}">
     {% endif %}
 
-    <button type="submit" class="btn btn-danger">
+    <button type="submit" class="btn">
         {% if not is_liked_bool %}
             <span class="material-icons">
-                favorite
+                thumb_up
             </span>
         {% else %}
-            <span class="material-icons">
-                favorite_border
+            <span class="material-icons bg-black">
+                thumb_up
             </span>
         {% endif %}
         <span class="likes-qty">{{ likes_counter }}</span>
+    </button>
+</form>
+<form action="{% if not is_disliked_bool %}{% url 'add_dislike' %}{% else %}{% url 'remove_dislike' %}{% endif %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="company_id" value="{{ company_id }}">
+    <input type="hidden" name="user_id" value="{{ request.user.id }}">
+    <input type="hidden" name="url_form" value="{{ request.path }}">
+
+    {% if is_disliked_bool %}
+        <input type="hidden" name="company_dislikes_id" value="{{ company_dislikes_id }}">
+    {% endif %}
+
+    <button type="submit" class="btn">
+        {% if not is_disliked_bool %}
+            <span class="material-icons">
+                thumb_down
+            </span>
+        {% else %}
+            <span class="material-icons text-black">
+                thumb_down
+            </span>
+        {% endif %}
+        <span class="likes-qty">{{ dislikes_counter }}</span>
     </button>
 </form>
 <br>

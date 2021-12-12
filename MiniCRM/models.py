@@ -189,11 +189,25 @@ class CompanyLikes(models.Model):
         return f'{self.company}: {self.liked_by} - {self.like}'
 
 
+class CompanyDisLike(models.Model):
+    """
+    Model to save the dislikes of company
+    attributes:
+        liked_by (class User): communication with the User model
+        company (class Company): communication with the Company model
+        like (bool): mark like, True or False
+        created (datetime): data of create like
+    """
+    disliked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True)
+    dislike = models.BooleanField('DisLike', default=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.company}: {self.disliked_by} - {self.dislike} - {self.created}'
+
+
 class InteractionInformationCompany(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     project = models.ForeignKey(ProjectCompany, on_delete=models.CASCADE)
     manager_interaction = models.CharField(max_length=100)
-
-
-# Канала обращения (Заявка; Письмо; Сайт; Инициатива компании)
-# Оценка (можно лайк / дизлайк или оценки от -5 до 5 или др)

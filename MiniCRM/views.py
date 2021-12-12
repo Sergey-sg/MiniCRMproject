@@ -8,7 +8,8 @@ from django.views.generic import CreateView, UpdateView, View
 from .filters import MessageFilter
 from .forms import CompanyOverallForm, ProjectOverallForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset, \
     MessageForm
-from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes, Message, MessageLike
+from .models import Company, EmailCompany, PhoneCompany, ProjectCompany, CompanyLikes, Message, MessageLike, \
+    CompanyDisLike
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -233,13 +234,51 @@ class AddLikeView(View):
 
         try:
             company_like_inst = CompanyLikes.objects.get(company=company_inst, liked_by=user_inst)
+            company_like_inst.like = True
+            company_like_inst.save()
+            company_dislike = CompanyDisLike.objects.get(company=company_inst, disliked_by=user_inst)
+            company_dislike.dislike = False
+            company_dislike.save()
         except Exception as e:
             company_like = CompanyLikes(company=company_inst,
                                         liked_by=user_inst,
                                         like=True
                                         )
             company_like.save()
+            company_dislike = CompanyDisLike(company=company_inst, disliked_by=user_inst, dislike=False)
+            company_dislike.save()
+        return redirect(url_form)
 
+
+class AddDisLikeView(View):
+    """
+    Adds dislikes of company.
+    """
+
+    def post(self, request, *args, **kwargs):
+        company_id = int(request.POST.get('company_id'))
+        user_id = int(request.POST.get('user_id'))
+        url_form = request.POST.get('url_form')
+
+        user_inst = User.objects.get(id=user_id)
+        company_inst = Company.objects.get(id=company_id)
+
+        try:
+            company_dislike_inst = CompanyDisLike.objects.get(company=company_inst, disliked_by=user_inst)
+            company_dislike_inst.dislike = True
+            company_dislike_inst.save()
+            company_like = CompanyLikes.objects.get(company=company_inst, liked_by=user_inst)
+            company_like.like = False
+            company_like.save()
+        except Exception as e:
+            company_dislike = CompanyDisLike(
+                company=company_inst,
+                disliked_by=user_inst,
+                dislike=True
+                )
+            company_dislike.save()
+            company_like = CompanyLikes(company=company_inst, liked_by=user_inst, like=False)
+            company_like.save()
         return redirect(url_form)
 
 
@@ -251,10 +290,31 @@ class RemoveLikeView(View):
     def post(self, request, *args, **kwargs):
         company_likes_id = int(request.POST.get('company_likes_id'))
         url_form = request.POST.get('url_form')
+        user_id = int(request.POST.get('user_id'))
 
         company_like = CompanyLikes.objects.get(id=company_likes_id)
+        company_id = company_like.company
+        company_dislike_id = CompanyDisLike.objects.get(company=company_id, disliked_by=user_id).pk
+        company_dislike = CompanyDisLike.objects.get(id=company_dislike_id)
         company_like.delete()
+        company_dislike.delete()
+        return redirect(url_form)
 
+
+class RemoveDisLikeView(View):
+    """
+    Remove dislikes of company
+    """
+
+    def post(self, request, *args, **kwargs):
+        company_dislikes_id = int(request.POST.get('company_dislikes_id'))
+        url_form = request.POST.get('url_form')
+
+        company_dislike = CompanyDisLike.objects.get(id=company_dislikes_id)
+        company_id = company_dislike.company_id
+        company_like = CompanyLikes.objects.get(company=company_id)
+        company_like.delete()
+        company_dislike.delete()
         return redirect(url_form)
 
 
@@ -281,6 +341,31 @@ class AddMessageLikeView(View):
             message_like.save()
 
         return redirect(url_form)
+
+
+# class AddMessageDisLikeView(View):
+#     """
+#     Adds dislikes to messages.
+#     """
+#
+#     def post(self, request, *args, **kwargs):
+#         message_id = int(request.POST.get('message_id'))
+#         user_id = int(request.POST.get('user_id'))
+#         url_form = request.POST.get('url_form')
+#
+#         user_inst = User.objects.get(id=user_id)
+#         message_inst = Message.objects.get(id=message_id)
+#
+#         try:
+#             message_like_inst = MessageLike.objects.get(message=message_inst, liked_by=user_inst)
+#         except Exception as e:
+#             message_like = MessageLike(message=message_inst,
+#                                         liked_by=user_inst,
+#                                         like=True
+#                                         )
+#             message_like.save()
+#
+#         return redirect(url_form)
 
 
 class RemoveMessageLikeView(View):

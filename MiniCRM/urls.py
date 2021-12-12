@@ -14,7 +14,9 @@ urlpatterns = [
     url(r'^project/(?P<pk>\d+)/update/$', views.ProjectCompanyUpdateView.as_view(), name='project-update'),
     path('likes/', include([
         path('add/', views.AddLikeView.as_view(), name='add'),
+        path('add-dis/', views.AddDisLikeView.as_view(), name='add_dislike'),
         path('remove/', views.RemoveLikeView.as_view(), name='remove'),
+        path('remove-dislike/', views.RemoveDisLikeView.as_view(), name='remove_dislike'),
         ],), name='likes'),
     url(r'^project/(?P<pk>\d+)/new-message/$', views.MessageCreateView.as_view(), name='message_create'),
     path('likes/', include([
