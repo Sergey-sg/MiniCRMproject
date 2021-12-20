@@ -1,4 +1,5 @@
 {% load like %}
+{% load pagination_for_filter %}
 
 {% is_liked company_id as is_liked_bool %}
 {% count_likes company_id as likes_counter %}
@@ -24,11 +25,11 @@
 
     <button type="submit" class="btn">
         {% if not is_liked_bool %}
-            <span class="material-icons">
+            <span class="material-icons text-secondary">
                 thumb_up
             </span>
         {% else %}
-            <span class="material-icons bg-black">
+            <span class="material-icons text-danger">
                 thumb_up
             </span>
         {% endif %}
@@ -47,11 +48,11 @@
 
     <button type="submit" class="btn">
         {% if not is_disliked_bool %}
-            <span class="material-icons">
+            <span class="material-icons text-secondary">
                 thumb_down
             </span>
         {% else %}
-            <span class="material-icons text-black">
+            <span class="material-icons text-danger">
                 thumb_down
             </span>
         {% endif %}

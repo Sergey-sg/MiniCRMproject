@@ -2,49 +2,49 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-  <div class="container">
-    <form action="{% url 'home' %}" method="get">
-      <div class="dropdown">
-        <span>Sort by:</span>
-        <button value="Sorted" class="dropdown-toggle btn btn-info" type="submit" data-bs-toggle="dropdown" id="menu2">
-            <span class="dropdown-label">Sort by</span>
-        </button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">
-               <li class="dropdown-item"><input type="radio" name="orderby" value="date_created">  ascending creation date</li>
-               <li class="dropdown-item"><input type="radio" name="orderby" value="-date_created">  descending date of creation</li>
-               <li class="dropdown-item"><input type="radio" name="orderby" value="name">  by name</li>
-               <li class="dropdown-item"><input type="radio" name="orderby" value="-name">  by name in reverse order</li>
-               <li class="dropdown-item"><input class="btn btn-info" type="submit" value="Sort"></li>
-            </ul>
-      </div>
-        <br>
-    </form>
+  <div class="container col-12 col-lg-12">
+{#    <form action="{% url 'home' %}" method="get">#}
+{#      <div class="dropdown">#}
+{#        <span>Sort by:</span>{{ form }}#}
+{#        <button value="Sorted" class="dropdown-toggle btn btn-info" type="submit" data-bs-toggle="dropdown" id="menu2">#}
+{#            <span class="dropdown-label">Sort by</span>#}
+{#        </button>#}
+{#            <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">#}
+{#               <li class="dropdown-item"><input type="radio" name="orderby" value="date_created">  ascending creation date</li>#}
+{#               <li class="dropdown-item"><input type="radio" name="orderby" value="-date_created">  descending date of creation</li>#}
+{#               <li class="dropdown-item"><input type="radio" name="orderby" value="name">  by name</li>#}
+{#               <li class="dropdown-item"><input type="radio" name="orderby" value="-name">  by name in reverse order</li>#}
+{#               <li class="dropdown-item"><input class="btn btn-info" type="submit" value="Sort"></li>#}
+{#            </ul>#}
+{#      </div>#}
+{#        <br>#}
+{#    </form>#}
 
-       <div class="container">
-            <div class="row">
-              {% for company in company_list %}
-                <div class="card col-12 mx-auto col-md-5 col-lg-4" style="margin: 15px">
+  <div class="row" style="padding: 50px;">
+    <form method="get">
+        <div style="float: left">ordering: {{ filterset.form.o }}<input type="submit" value="sort"/></div>
+    </form>
+  </div>
+    {% if filterset %}
+        {% for company in object_list %}
+                <div class="card" style="margin: 15px">
                   <div class="card-body">
                     <h5 class="card-title"><a href="{% url 'company_detail' company.pk %}">{{ company.name }}</a> </h5>
                     {% include 'add_like.html' with company_id=company.pk %}
                     <h6 class="card-subtitle mb-2 text-muted">{{ company.contact_person }} - {{ company.position_person }}</h6>
                     <p class="card-text">{{ company.description | safe | striptags | linebreaks | slice:":300" }}</p>
-                    <div class="card-text">{{ company.date_created }}</div>
-                    <div class="card-text">{{ company.date_modified }}</div>
+                    <div class="card-text">created: {{ company.date_created }}</div>
+                    <div class="card-text">last update info: {{ company.date_modified }}</div>
                     <br>
-                    <div class="card-text">{{ company.address }}</div>
+                    <div class="card-text">address: {{ company.address }}</div>
                     <br>
-                    {% for phone in phone_list %}
-                        {% if phone.company.name == company.name %}
-                            <div class="card-text">{{ phone.phone_number }}</div>
-                        {% endif %}
+                    {% for phone in company.phonecompany_set.all %}
+                        <div class="card-text">{{ phone.phone_number }}</div>
                     {% endfor %}
-                    {% for email in email_list %}
-                        {% if email.company.name == company.name %}
-                            <a class="card-text" href="mailto:{{ email.email }}">{{ email.email }}</a>
-                        {% endif %}
+                    {% for email in company.emailcompany_set.all %}
+                        <a class="card-text" href="mailto:{{ email.email }}">{{ email.email }}</a>
                     {% endfor %}
-                  <br>
+                    <br>
                       <a href="{% url 'company-messages' company.pk %}">
                           <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
                               Company messages of all projects
@@ -63,10 +63,8 @@
                   </div>
                 </div>
                 <br>
-              {% endfor %}
-            </div>
-       </div>
-
+        {% endfor %}
+    {% endif %}
   </div>
 
 {% endblock %}

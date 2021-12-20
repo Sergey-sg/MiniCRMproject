@@ -1,11 +1,13 @@
 from ckeditor.fields import RichTextField
 from django import forms
+from django.contrib.auth.forms import UserChangeForm as UserChange
 from django.forms import fields, inlineformset_factory
 
-from .models import Company, ProjectCompany, PhoneCompany, EmailCompany, Message
+from .models import Company, ProjectCompany, PhoneCompany, EmailCompany, Message, User
 
 
 class CompanyOverallForm(forms.ModelForm):
+
     class Meta:
         model = Company
         fields = '__all__'
@@ -56,3 +58,27 @@ class MessageForm(forms.ModelForm):
     class Meta:
         model = Message
         fields = '__all__'
+
+
+class MessageChangeForm(forms.ModelForm):
+    """
+    Form for creat message of project.
+    """
+    class Meta:
+        model = Message
+        fields = ('message', 'communication_options')
+
+
+class MessageSearchForm(forms.ModelForm):
+    search = forms.TextInput()
+
+    class Meta:
+        model = Message
+        fields = ('message',)
+
+
+class UserUpdateForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'password')

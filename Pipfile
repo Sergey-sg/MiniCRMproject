@@ -10,6 +10,7 @@ django-filter = "~=21.1"
 articles = "*"
 
 [dev-packages]
+django-debug-toolbar = "~=3.2.3"
 
 [requires]
 python_version = "3.8"

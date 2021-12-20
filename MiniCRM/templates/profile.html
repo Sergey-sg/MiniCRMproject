@@ -1,17 +1,110 @@
 {% extends 'base.html' %}
 {% block title %}Personal area{% endblock %}
-
+{% load static %}
 {% block content %}
-    {{ request.user.first_name }}
+ <div class="container">
+    <img src="{{ request.user.user_photo.url }}" alt="manager-photo" class="mr-3 mt-3" style="width:100px;">
+    <a style="float: right" href="{% url 'user-change' %}">Change your account information</a><br/>
     <br>
-    {{ request.user.last_name }}
     <br>
-    1. Фотография пользователя
-    2. Редактирования базовых данных пользователя:
-    Имя
-    Фамилия
-    Email
-    Пароль
-    3. Возможность добавлять и редактировать записи CRM
-    4. Список добавленных менеджером записей
+    <div>{{ request.user.first_name }} {{ request.user.last_name }}</div>
+    <br>
+     {% for group in request.user.groups.all %}
+        {% if group.name == 'manager' %}
+              <form method="get">
+                 <li class="dropdown">
+                     <a class="nav-link text-black text-uppercase font-weight-bold px-3 dropdown-toggle" role="button" data-bs-toggle="dropdown" href="#">
+                         Change your objects
+                     </a>
+                     <ul class="dropdown-menu">
+                         <li><input class="bg-primary" name="personal_object" type="radio" value="companies">  companies</li>
+                         <li><input class="bg-primary" name="personal_object" type="radio" value="projects">  projects</li>
+                         <li><input class="bg-primary" name="personal_object" type="radio" value="comments">  comments</li>
+                         <li><input type="submit"></li>
+                     </ul>
+                 </li>
+              </form>
+                <div class="container">
+                    {% for object in object_list %}
+                        {% if 'comments' == request.GET.personal_object %}
+                           <div class="media border p-3" style="margin-bottom: 15px">
+                                <div class="media-body">
+                                    <h4>manager: {{ object.manager }} <small><i class="text-muted">posted on {{ object.created }}</i></small></h4>
+                                    <div class="text-muted">project company: {{ object.project.company }} -- project: {{ object.project }}</div>
+                                    <div class="text-muted">communication options: {{ object.communication_options }}</div>
+                                    <p>{{ object.message | safe | striptags| linebreaks | slice:':400' }}</p>
+                                    <a href="{% url 'message_detail' object.pk %}">
+                                        <button type="button" class="btn btn-primary" style="margin-left: 15px; float: right">
+                                            detail commit
+                                        </button>
+                                    </a>
+                                    {% include 'add_like_message.html' with message_id=object.pk %}
+                                </div>
+                            </div>
+                    {% elif 'projects' == request.GET.personal_object %}
+                        <div class="card col-12 mx-auto col-md-5 col-lg-4">
+                            <div class="card-body">
+                                <h5 class="card-title"><a href="{% url 'project_detail' object.pk %}">{{ object.name }}</a></h5>
+                                <p class="card-title">Company: <a href="{% url 'company_detail' object.company.pk %}">{{ object.company.name }}</a></p>
+                                <p class="card-text">Description: {{ object.description | safe | striptags | linebreaks | slice:":300" }}</p>
+                                <p class="card-text">Start dates: {{ object.start_dates }}</p>
+                                <p class="card-text">Deadline: {{ object.deadline }}</p>
+                                <p class="card-text">Price: ${{ object.price }}</p>
+                                <br>
+                                <a href="{% url 'message_create' object.pk %}">
+                                    <button type="button" class="btn btn-primary" style="margin-top: 15px">
+                                        commit project
+                                    </button>
+                                </a>
+                                <a href="{% url 'project-update' object.pk %}">
+                                    <button type="button" class="btn btn-primary" style="margin-top: 15px">
+                                        Change project data
+                                    </button>
+                                </a>
+                            </div>
+                        </div><br/>
+                    {% else %}
+                        <div class="card" style="margin: 15px">
+                            <div class="card-body">
+                                <h5 class="card-title"><a href="{% url 'company_detail' object.pk %}">{{ object.name }}</a> </h5>
+                                {% include 'add_like.html' with company_id=object.pk %}
+                                <h6 class="card-subtitle mb-2 text-muted">{{ object.contact_person }} - {{ object.position_person }}</h6>
+                                <p class="card-text">{{ object.description | safe | striptags | linebreaks | slice:":300" }}</p>
+                                <div class="card-text">created: {{ object.date_created }}</div>
+                                <div class="card-text">last update info: {{ object.date_modified }}</div>
+                                <br>
+                                <div class="card-text">address: {{ object.address }}</div>
+                                <br>
+                                {% for phone in object.phonecompany_set.all %}
+                                    <div class="card-text">{{ phone.phone_number }}</div>
+                                {% endfor %}
+                                {% for email in object.emailcompany_set.all %}
+                                    <a class="card-text" href="mailto:{{ email.email }}">{{ email.email }}</a>
+                                {% endfor %}
+                                <br>
+                                <a href="{% url 'company-messages' object.pk %}">
+                                    <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
+                                        Company messages of all projects
+                                    </button>
+                                </a>
+                                <a href="{% url 'company-projects' object.pk %}">
+                                    <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
+                                        Company projects
+                                    </button>
+                                </a>
+                                <a href="{% url 'company-update' object.pk %}">
+                                    <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
+                                        Change company data
+                                    </button>
+                                </a>
+                            </div>
+                        </div>
+                        <br>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <br>
+        {% endif %}
+     {% endfor %}
+ </div>
 {% endblock %}

@@ -1,11 +1,16 @@
 import django_filters
-from .models import Message
+from .models import Company
 
 
-class MessageFilter(django_filters.FilterSet):
-    message = django_filters.CharFilter(field_name='message', lookup_expr='icontains')
-    # message = django_filters.MultipleChoiceFilter(lookup_expr='i_contains')
+class CompanyFilter(django_filters.FilterSet):
+
+    o = django_filters.OrderingFilter(
+        fields=(
+            ('name', 'name'),
+            ('date_created', 'date_created'),
+        ),
+    )
 
     class Meta:
-        model = Message
-        fields = ('message',)
+        model = Company
+        fields = ('name',)

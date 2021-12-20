@@ -1,21 +1,20 @@
 {% extends 'base.html' %}
-{% block title %}Message filter{% endblock %}
-
 {% block content %}
 
 <div class="container">
   <div class="row" style="padding: 50px;">
     <form method="get">
-        <div style="float: left">{{ filter_form.form.as_p }}</div>
+{#        <div style="float: left">{{ filter.form }}</div>#}
+      <input name="search" type="text" placeholder="Search...">
       <input type="submit" />
     </form>
   </div>
 
   <div class="row">
-  {% if filter %}
-    {% for message in filter %}
+{#  {% if filter %}#}
+    {% for message in object_list %}
     <div class="media border p-3" style="margin-bottom: 15px">
-{#      <img src="" alt="manager-photo" class="mr-3 mt-3 rounded-circle" style="width:60px;">#}
+      <img src="{{ message.usermessage.user_photo.image }}" alt="manager-photo" class="mr-3 mt-3 rounded-circle" style="width:60px;">
         <div class="media-body">
             <h4>manager: {{ message.manager }} <small><i class="text-muted">posted on {{ message.created }}</i></small></h4>
             <div class="text-muted">project company: {{ message.project.company }} -- project: {{ message.project }}</div>
@@ -30,45 +29,8 @@
         </div>
     </div>
     {% endfor %}
+{#  {% endif %}#}
   </div>
 </div>
 
-{#{% if is_paginated %}#}
-    <div class="container d-grid gap-2">
-                  <nav class="mx-auto" aria-label="Page navigation example" style="margin-top: 15px;">
-                      <ul class="pagination">
-                        {% if filter.has_previous %}
-                            <li class="page-item">
-                              <a class="page-link" href="{{ request.path }}?page={{ filter.previous_page_number }}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                              </a>
-                            </li>
-                        {% else %}
-                            <li class="page-item disabled">
-                              <a class="page-link" href="" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                              </a>
-                            </li>
-                        {% endif %}
-                        <li class="page-item page-link">Page {{ filter.number }} of {{ filter.paginator.num_pages }}</li>
-                        {% if filter.has_next %}
-                            <li class="page-item">
-                              <a class="page-link" href="{{ request.path }}?page={{ filter.next_page_number }}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                              </a>
-                            </li>
-                        {% else %}
-                            <li class="page-item disabled">
-                              <a class="page-link" href="" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                              </a>
-                            </li>
-                        {% endif %}
-                      </ul>
-                  </nav>
-              </div>
-{#{% endif %}#}
-    {% else %}
-    <h3>Comment not found</h3>
-    {% endif %}
 {% endblock %}

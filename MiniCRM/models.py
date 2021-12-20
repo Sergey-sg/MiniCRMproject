@@ -1,11 +1,26 @@
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from ckeditor.fields import RichTextField
 from django.urls import reverse
+from django.contrib.auth.models import AbstractUser
+
+
+class User(AbstractUser):
+    user_photo = models.ImageField(upload_to='user_photo', default='default_user_photo.png', help_text="Profile Picture")
+
+    def __str__(self):
+        if self.is_staff:
+            staff = " - staff"
+        else:
+            staff = ''
+        return f'{self.username}{staff}'
+
+    class Meta:
+        verbose_name = 'user'
+        verbose_name_plural = 'Users'
 
 
 class Company(models.Model):
@@ -27,7 +42,7 @@ attributes:
     contact_person = models.CharField(max_length=450, help_text="Full name of the contact person")
     position_person = models.CharField(max_length=300, help_text="Position of the contact person")
     address = models.CharField(max_length=250, blank=True, help_text="Company address")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='add_company', null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
     def get_absolute_url(self):
         """
@@ -41,6 +56,9 @@ attributes:
 
     class Meta:
         permissions = (("can_see_companies", "Can see companies"),)
+        verbose_name = 'company'
+        verbose_name_plural = 'Companies'
+        ordering = ['-date_created']
 
 
 class PhoneCompany(models.Model):
@@ -56,10 +74,16 @@ class PhoneCompany(models.Model):
     phone_number = models.CharField(validators=[phone_regex], unique=True, max_length=13, blank=True,
                                     help_text='Phone number must be in format: "+380999999999"')
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         """class method returns the phone number of company in string representation"""
         return self.phone_number
+
+    class Meta:
+        verbose_name = 'phone of company'
+        verbose_name_plural = 'Phones of companies'
+        ordering = ['-created']
 
 
 class EmailCompany(models.Model):
@@ -71,10 +95,16 @@ class EmailCompany(models.Model):
     """
     email = models.EmailField(max_length=254, unique=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         """class method returns the email of company in string representation"""
         return self.email
+
+    class Meta:
+        verbose_name = 'email of company'
+        verbose_name_plural = 'Emails of companies'
+        ordering = ['-created']
 
 
 class ProjectCompany(models.Model):
@@ -94,7 +124,8 @@ class ProjectCompany(models.Model):
     start_dates = models.DateField(null=True, blank=True, help_text="Enter the date of start project")
     deadline = models.DateField(null=True, blank=True, help_text="Enter the date of deadline")
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Enter price project")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='add_project', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
 
     def clean_fields(self, exclude=None):
         """
@@ -114,6 +145,11 @@ class ProjectCompany(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'project of company'
+        verbose_name_plural = 'Projects of companies'
+        ordering = ['-created']
+
 
 class Communication(models.Model):
     """
@@ -126,6 +162,9 @@ class Communication(models.Model):
     def __str__(self):
         return self.communication
 
+    class Meta:
+        verbose_name = 'communication'
+
 
 class Message(models.Model):
     """
@@ -137,7 +176,7 @@ class Message(models.Model):
         created (datetime): data of create comment
         communication_options (class Communication): communication with the Communication model
     """
-    manager = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='manager', on_delete=models.CASCADE)
+    manager = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     project = models.ForeignKey(ProjectCompany, on_delete=models.CASCADE)
     message = RichTextField()
     created = models.DateTimeField(auto_now_add=True)
@@ -152,6 +191,11 @@ class Message(models.Model):
         """
         return reverse('message_detail', args=[str(self.pk)])
 
+    class Meta:
+        verbose_name = 'comment of project'
+        verbose_name_plural = 'Comments of projects'
+        ordering = ['-created']
+
 
 class MessageLike(models.Model):
     """
@@ -163,12 +207,40 @@ class MessageLike(models.Model):
         created (datetime): data of create like
     """
     liked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
     like = models.BooleanField('Like', default=False)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.message}: {self.liked_by} - {self.like}'
+
+    class Meta:
+        verbose_name = 'like of message'
+        verbose_name_plural = 'Likes of messages'
+        ordering = ['-created']
+
+
+class MessageDisLike(models.Model):
+    """
+    Model to save the dislikes of company
+    attributes:
+        liked_by (class User): communication with the User model
+        company (class Company): communication with the Company model
+        like (bool): mark like, True or False
+        created (datetime): data of create like
+    """
+    disliked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    dislike = models.BooleanField('DisLike', default=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.message}: {self.disliked_by} - {self.dislike} - {self.created}'
+
+    class Meta:
+        verbose_name = 'dislike of message'
+        verbose_name_plural = 'Dislikes of messages'
+        ordering = ['-created']
 
 
 class CompanyLikes(models.Model):
@@ -180,13 +252,18 @@ class CompanyLikes(models.Model):
         like (bool): mark like, True or False
         created (datetime): data of create like
     """
-    liked_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='add_like', on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True)
+    liked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     like = models.BooleanField('Like', default=False)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.company}: {self.liked_by} - {self.like}'
+
+    class Meta:
+        verbose_name = 'like of company'
+        verbose_name_plural = 'Likes of companies'
+        ordering = ['-created']
 
 
 class CompanyDisLike(models.Model):
@@ -199,15 +276,14 @@ class CompanyDisLike(models.Model):
         created (datetime): data of create like
     """
     disliked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     dislike = models.BooleanField('DisLike', default=False)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.company}: {self.disliked_by} - {self.dislike} - {self.created}'
 
-
-class InteractionInformationCompany(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    project = models.ForeignKey(ProjectCompany, on_delete=models.CASCADE)
-    manager_interaction = models.CharField(max_length=100)
+    class Meta:
+        verbose_name = 'dislike of company'
+        verbose_name_plural = 'Dislikes of companies'
+        ordering = ['-created']

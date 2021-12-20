@@ -1,5 +1,5 @@
 from django import template
-from ..models import CompanyLikes, MessageLike, CompanyDisLike
+from ..models import CompanyLikes, MessageLike, CompanyDisLike, MessageDisLike
 
 register = template.Library()
 
@@ -63,6 +63,35 @@ def is_liked_message(context, message_id):
 
 
 @register.simple_tag(takes_context=True)
+def is_disliked_message(context, message_id):
+    request = context['request']
+    try:
+        message_dislikes = MessageDisLike.objects.get(message_id=message_id, disliked_by=request.user.id).dislike
+    except Exception as e:
+        return False
+    if message_dislikes:
+        return True
+    else:
+        return False
+
+
+@register.simple_tag(takes_context=True)
 def message_likes_id(context, message_id):
     request = context['request']
     return MessageLike.objects.get(message=message_id, liked_by=request.user.id).id
+
+
+@register.simple_tag(takes_context=True)
+def message_dislikes_id(context, message_id):
+    request = context['request']
+    return MessageDisLike.objects.get(message_id=message_id, disliked_by=request.user.id).id
+
+
+@register.simple_tag()
+def count_likes_message(message_id):
+    return MessageLike.objects.filter(message_id=message_id, like=True).count()
+
+
+@register.simple_tag()
+def count_dislikes_message(message_id):
+    return MessageDisLike.objects.filter(message_id=message_id, dislike=True).count()
