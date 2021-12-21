@@ -1,6 +1,6 @@
 from ckeditor.fields import RichTextField
 from django import forms
-from django.contrib.auth.forms import UserChangeForm as UserChange
+from django.contrib.auth.forms import UserChangeForm as UserChange, ReadOnlyPasswordHashField, PasswordChangeForm
 from django.forms import fields, inlineformset_factory
 
 from .models import Company, ProjectCompany, PhoneCompany, EmailCompany, Message, User
@@ -77,8 +77,7 @@ class MessageSearchForm(forms.ModelForm):
         fields = ('message',)
 
 
-class UserUpdateForm(forms.ModelForm):
-
+class UserUpdateForm(UserChange):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email', 'password')

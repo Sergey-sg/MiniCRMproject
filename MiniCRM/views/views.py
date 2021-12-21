@@ -1,4 +1,6 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.views import PasswordChangeView
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
@@ -7,10 +9,9 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 
-from MiniCRM.admin import UserChangeForm
 from MiniCRM.filters import CompanyFilter
 from MiniCRM.forms import CompanyOverallForm, ProjectOverallForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset, \
-    MessageForm, MessageChangeForm, MessageSearchForm
+    MessageForm, MessageChangeForm, MessageSearchForm, UserUpdateForm
 from MiniCRM.models import Company, ProjectCompany, Message, User
 
 
@@ -29,11 +30,11 @@ class CompanyListView(RedirectPermissionRequiredMixin, ListView):
     """
     Generates a list of company with ordering
     """
-
     permission_required = 'MiniCRM.can_see_companies'
     template_name = 'home.html'
     paginate_by = 2
     filterset_class = CompanyFilter
+    model = Company
 
     def get_queryset(self):
         """Return the filtered queryset"""
@@ -106,22 +107,6 @@ class ProjectCompanyListView(RedirectPermissionRequiredMixin, ListView):
     template_name = "company_projects.html"
     paginate_by = 2
     permission_required = 'MiniCRM.can_see_companies'
-
-
-class ProjectCompanyDetailView(RedirectPermissionRequiredMixin, DetailView):
-    """
-    Generates a detail of project
-    """
-
-    model = ProjectCompany
-    template_name = "project_detail.html"
-    permission_required = 'MiniCRM.can_see_companies'
-
-    def get_context_data(self, **kwargs):
-        context = super(ProjectCompanyDetailView, self).get_context_data(**kwargs)
-        context['messages'] = Message.objects.filter(project=self.kwargs.get('pk')).order_by('-created')[:5]
-        context['message_form'] = MessageForm()
-        return context
 
 
 class ProjectCompanyCreate(RedirectPermissionRequiredMixin, CreateView):
@@ -198,26 +183,7 @@ class MessageCompanyListView(RedirectPermissionRequiredMixin, ListView):
         return object_list
 
 
-class MessageProjectListView(RedirectPermissionRequiredMixin, ListView):
-    """
-    Generates a list of messages of project
-    """
-    context_object_name = 'messages'
-    template_name = "messages-project.html"
-    paginate_by = 5
-    permission_required = 'MiniCRM.change_company'
-
-    def get_queryset(self):
-        """
-        Get a filtered list of messages by user request (project_id)
-        :return: message list
-        """
-        project_id = self.kwargs.get('pk')  # getting pk from user request
-        object_list = Message.objects.filter(project=project_id).order_by('-created')
-        return object_list
-
-
-class MessageListView(RedirectPermissionRequiredMixin, ListView):
+class ProjectWithMessageListView(RedirectPermissionRequiredMixin, ListView):
     permission_required = 'MiniCRM.change_company'
     template_name = 'filter.html'
     paginate_by = 2
@@ -236,9 +202,12 @@ class MessageListView(RedirectPermissionRequiredMixin, ListView):
         return queryset
 
     def get_context_data(self, *args, **kwargs):
-        context = super(MessageListView, self).get_context_data(**kwargs)
+        context = super(ProjectWithMessageListView, self).get_context_data(**kwargs)
         form = MessageSearchForm()
+        project = ProjectCompany.objects.get(pk=self.kwargs['pk'])
         context['form'] = form
+        context['message_form'] = MessageForm()
+        context['project'] = project
         return context
 
 
@@ -263,14 +232,59 @@ class PersonalArea(RedirectPermissionRequiredMixin, ListView):
             return Company.objects.filter(user=self.request.user.pk).order_by('-date_created')
 
 
-@login_required
-def user_update(request):
+class UserChangeView(RedirectPermissionRequiredMixin, UpdateView):
+    permission_required = 'MiniCRM.can_see_companies'
+    template_name = 'change_user.html'
+    form_class = UserUpdateForm
+
+    def get_object(self, queryset=None):
+        user = self.request.user.pk
+        return User.objects.get(pk=user)
+
+    def get_success_url(self):
+        return '/accounts/profile/'
+
+
+class MyPasswordChangeView(RedirectPermissionRequiredMixin, PasswordChangeView):
+    permission_required = 'MiniCRM.can_see_companies'
+    template_name = 'password_change.html'
+    form_class = PasswordChangeForm
+
+    def get_object(self, queryset=None):
+        user = self.request.user.pk
+        return User.objects.get(pk=user)
+
+    # def get_queryset(self):
+    #     if self.request.method == 'POST':
+    #         form = PasswordChangeForm(data=self.request.POST, user=self.request.user)
+    #
+    #         if form.is_valid():
+    #             form.save()
+    #             update_session_auth_hash(self.request, form.user)
+    #             return redirect(reverse_lazy('personal-area'))
+    #         else:
+    #             return redirect(reverse_lazy('password-change'))
+    #     else:
+    #         form = PasswordChangeForm(user=self.request.user)
+    #
+    #         args = {'form': form}
+    #         return render(self.request, 'password_change.html', args)
+
+    def get_success_url(self):
+        return '/accounts/profile/'
+
+def change_password(request):
     if request.method == 'POST':
-        form = UserChangeForm(request.POST, instance=request.user)
+        form = PasswordChangeForm(data=request.POST, user=request.user)
+
         if form.is_valid():
             form.save()
-            return reverse_lazy(request, 'profile.html')
+            update_session_auth_hash(request, form.user)
+            return redirect(reverse_lazy('personal-area'))
+        else:
+            return redirect(reverse_lazy('password-change'))
     else:
-        form = UserChangeForm(instance=request.user)
+        form = PasswordChangeForm(user=request.user)
 
-    return render(request, 'change_user.html', {"form": form})
+        args = {'form': form}
+        return render(request, 'password_change.html', args)

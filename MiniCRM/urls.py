@@ -18,11 +18,9 @@ urlpatterns = [
             ],), name='likes'),
     ])),
     path('project/', include([
-        path('detail/<int:pk>/', views.ProjectCompanyDetailView.as_view(), name='project_detail'),
+        path('detail/<int:pk>/', views.ProjectWithMessageListView.as_view(), name='project_detail'),
         path('create/', views.ProjectCompanyCreate.as_view(), name='project-create'),
         path('<int:pk>/update/', views.ProjectCompanyUpdateView.as_view(), name='project-update'),
-        path('<int:pk>/messages/', views.MessageProjectListView.as_view(), name='project_messages'),
-        path('<int:pk>/search-message/', views.MessageListView.as_view(), name="search_message"),
         path('<int:pk>/new-message/', views.MessageCreateView.as_view(), name='message_create'),
         path('message/', include([
             path('<int:pk>/detail/', views.MessageDetailView.as_view(), name='message_detail'),
@@ -37,6 +35,7 @@ urlpatterns = [
     ])),
     path('accounts/', include([
         path('profile/', views.PersonalArea.as_view(), name='personal-area'),
-        path('change/', views.user_update, name='user-change'),
+        path('change/', views.UserChangeView.as_view(), name='user-change'),
+        path('password/', views.MyPasswordChangeView.as_view(), name='password-change'),
         ]),)
 ]

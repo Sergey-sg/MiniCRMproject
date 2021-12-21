@@ -7,8 +7,8 @@
     <a style="float: right" href="{% url 'user-change' %}">Change your account information</a><br/>
     <br>
     <br>
-    <div>{{ request.user.first_name }} {{ request.user.last_name }}</div>
-    <br>
+    <div>full name: {{ request.user.first_name }} {{ request.user.last_name }}</div>
+    <br><div>email: {{ request.user.email }}</div>
      {% for group in request.user.groups.all %}
         {% if group.name == 'manager' %}
               <form method="get">
