@@ -73,7 +73,7 @@ class PhoneCompany(models.Model):
                                  message='Phone number must be in format: "+380999999999". Up to "+380" and 9 digits.')
     phone_number = models.CharField(validators=[phone_regex], unique=True, max_length=13, blank=True,
                                     help_text='Phone number must be in format: "+380999999999"')
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -1,16 +1,16 @@
 from django.urls import path, include
 
-from .views import views, views_likes
+from .views import views, views_likes, view_companies
 
 urlpatterns = [
-    path('', views.CompanyListView.as_view(), name='home'),
+    path('', view_companies.CompanyListView.as_view(), name='home'),
     path('company/', include([
-        path('create/', views.CompanyCreateView.as_view(), name='company-create'),
+        path('create/', view_companies.CompanyCreateView.as_view(), name='company-create'),
         path('<int:pk>/', include([
-            path('detail/', views.CompanyDetailView.as_view(), name='company_detail'),
-            path('update/', views.CompanyUpdateView.as_view(), name='company-update'),
+            path('detail/', view_companies.CompanyDetailView.as_view(), name='company_detail'),
+            path('update/', view_companies.CompanyUpdateView.as_view(), name='company-update'),
             path('projects/', views.ProjectCompanyListView.as_view(), name='company-projects'),
-            path('messages/', views.MessageCompanyListView.as_view(), name='company-messages'),
+            path('messages/', view_companies.MessageCompanyListView.as_view(), name='company-messages'),
         ])),
         path('likes/', include([
             path('add/', views_likes.AddLikeView.as_view(), name='add'),
