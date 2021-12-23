@@ -1,7 +1,6 @@
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.views import PasswordChangeView
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
 from django.db.models import Q
@@ -10,8 +9,8 @@ from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 
 from MiniCRM.filters import CompanyFilter
-from MiniCRM.forms import CompanyOverallForm, ProjectOverallForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset, \
-    MessageForm, MessageChangeForm, MessageSearchForm, UserUpdateForm
+from MiniCRM.forms import CompanyCreateForm, ProjectCreateForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset, \
+    MessageForm, MessageSearchForm, UserUpdateForm
 from MiniCRM.models import Company, ProjectCompany, Message, User
 
 
@@ -63,9 +62,13 @@ class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
     Displays a form for editing information about a company.
     """
     model = Company
-    form_class = CompanyOverallForm
+    form_class = CompanyCreateForm
     template_name = 'company_update_form.html'
     permission_required = 'MiniCRM.change_company'
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(CompanyUpdateView, self).get_queryset()
+        return queryset.filter(user=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super(CompanyUpdateView, self).get_context_data(**kwargs)
@@ -83,19 +86,24 @@ class CompanyCreateView(CreateView):
     Displays a form for create a company
     """
     model = Company
-    form_class = CompanyOverallForm
+    form_class = CompanyCreateForm
     template_name = 'company_create.html'
     permission_required = 'MiniCRM.change_company'
 
     def get(self, request, *args, **kwargs):
         self.object = None
-        form = CompanyOverallForm(initial={'user': self.request.user},)
+        form = CompanyCreateForm()
         phone_form = PhoneCompanyInlineFormset()
         email_form = EmailCompanyInlineFormset()
         return self.render_to_response(
             self.get_context_data(form=form,
                                   phone_form=phone_form,
                                   email_form=email_form))
+
+    def form_valid(self, form):
+        object_form = form.save(commit=False)
+        object_form.user = self.request.user
+        return super(CompanyCreateView, self).form_valid(form)
 
 
 class ProjectCompanyListView(RedirectPermissionRequiredMixin, ListView):
@@ -114,9 +122,14 @@ class ProjectCompanyCreate(RedirectPermissionRequiredMixin, CreateView):
     Implementation of the creation of a new project
     """
     model = ProjectCompany
-    form_class = ProjectOverallForm
+    form_class = ProjectCreateForm
     template_name = 'project_create.html'
     permission_required = 'MiniCRM.change_company'
+
+    def form_valid(self, form):
+        object_form = form.save(commit=False)
+        object_form.user = self.request.user
+        return super(ProjectCompanyCreate, self).form_valid(form)
 
 
 class ProjectCompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
@@ -124,12 +137,16 @@ class ProjectCompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
     Implementation of changes in information about the project.
     """
     model = ProjectCompany
-    form_class = ProjectOverallForm
+    form_class = ProjectCreateForm
     template_name = 'project_update.html'
     permission_required = 'MiniCRM.change_company'
 
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(ProjectCompanyUpdateView, self).get_queryset()
+        return queryset.filter(user=self.request.user)
 
-class MessageCreateView(PermissionRequiredMixin, CreateView):
+
+class MessageCreateView(RedirectPermissionRequiredMixin, CreateView):
     """
     Implementation of the creation of a new message for project
     """
@@ -138,17 +155,17 @@ class MessageCreateView(PermissionRequiredMixin, CreateView):
     template_name = 'message.html'
     permission_required = 'MiniCRM.change_company'
 
-    def get(self, request, *args, **kwargs):
-        self.object = None
-        form = MessageForm(initial={'manager': self.request.user, 'project': int(self.kwargs.get('pk'))},)
-        return self.render_to_response(self.get_context_data(form=form))
+    def form_valid(self, form, **kwargs):
+        object_form = form.save(commit=False)
+        object_form.manager = self.request.user
+        object_form.project = ProjectCompany.objects.get(pk=self.kwargs.get('pk'))
+        return super(MessageCreateView, self).form_valid(form)
 
 
 class MessageDetailView(RedirectPermissionRequiredMixin, DetailView):
     """
     Generates a detail of message of project
     """
-
     model = Message
     template_name = "message_detail.html"
     permission_required = 'MiniCRM.change_company'
@@ -159,33 +176,54 @@ class MessageUpdateView(RedirectPermissionRequiredMixin, UpdateView):
     Implementation of changes in information about the message of project.
     """
     model = Message
-    form_class = MessageChangeForm
+    form_class = MessageForm
     template_name = 'message.html'
     permission_required = 'MiniCRM.change_company'
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(MessageUpdateView, self).get_queryset()
+        return queryset.filter(user=self.request.user)
 
 
 class MessageCompanyListView(RedirectPermissionRequiredMixin, ListView):
     """
     Generates a list of all messages of company projects
     """
-    context_object_name = 'messages'
-    template_name = "message_list_company.html"
+    form_class = MessageSearchForm
+    context_object_name = 'object_list'
+    template_name = "messages_company.html"
     paginate_by = 5
     permission_required = 'MiniCRM.change_company'
 
-    def get_queryset(self):
-        """
-        Get a filtered list of messages by user request (company id)
-        :return: message list
-        """
+    def get_queryset(self, *args, **kwargs):
         company_id = self.kwargs.get('pk')  # getting pk from user request
-        object_list = Message.objects.filter(project__company=company_id).order_by('-created')
-        return object_list
+        queryset = Message.objects.filter(project__company=company_id).order_by('-created')
+        try:
+            search_string = self.request.GET['search'].split()
+            if search_string:
+                for word in search_string:
+                    queryset = queryset.filter(Q(message__icontains=word))
+        except Exception:
+            pass
+        return queryset
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(MessageCompanyListView, self).get_context_data(**kwargs)
+        form = MessageSearchForm()
+        context['form'] = form
+        context['message_form'] = MessageForm()
+        return context
 
 
 class ProjectWithMessageListView(RedirectPermissionRequiredMixin, ListView):
+    """
+    Generates a list of messages for project and send to context
+        'form' - form for search messages(comments);
+        'message_form' - form for created new message;
+        'project' - project object
+    """
     permission_required = 'MiniCRM.change_company'
-    template_name = 'filter.html'
+    template_name = 'project_detail_with_comments.html'
     paginate_by = 2
     form_class = MessageSearchForm
     context_object_name = 'object_list'
@@ -212,6 +250,9 @@ class ProjectWithMessageListView(RedirectPermissionRequiredMixin, ListView):
 
 
 class PersonalArea(RedirectPermissionRequiredMixin, ListView):
+    """
+    Send to 'profile.html' companies, messages, projects which are user-created
+    """
     permission_required = 'MiniCRM.can_see_companies'
     template_name = 'profile.html'
     paginate_by = 2
@@ -233,6 +274,9 @@ class PersonalArea(RedirectPermissionRequiredMixin, ListView):
 
 
 class UserChangeView(RedirectPermissionRequiredMixin, UpdateView):
+    """
+    Custom user change for users
+    """
     permission_required = 'MiniCRM.can_see_companies'
     template_name = 'change_user.html'
     form_class = UserUpdateForm
@@ -246,6 +290,9 @@ class UserChangeView(RedirectPermissionRequiredMixin, UpdateView):
 
 
 class MyPasswordChangeView(RedirectPermissionRequiredMixin, PasswordChangeView):
+    """
+    Custom password change for users
+    """
     permission_required = 'MiniCRM.can_see_companies'
     template_name = 'password_change.html'
     form_class = PasswordChangeForm
@@ -254,37 +301,5 @@ class MyPasswordChangeView(RedirectPermissionRequiredMixin, PasswordChangeView):
         user = self.request.user.pk
         return User.objects.get(pk=user)
 
-    # def get_queryset(self):
-    #     if self.request.method == 'POST':
-    #         form = PasswordChangeForm(data=self.request.POST, user=self.request.user)
-    #
-    #         if form.is_valid():
-    #             form.save()
-    #             update_session_auth_hash(self.request, form.user)
-    #             return redirect(reverse_lazy('personal-area'))
-    #         else:
-    #             return redirect(reverse_lazy('password-change'))
-    #     else:
-    #         form = PasswordChangeForm(user=self.request.user)
-    #
-    #         args = {'form': form}
-    #         return render(self.request, 'password_change.html', args)
-
     def get_success_url(self):
         return '/accounts/profile/'
-
-def change_password(request):
-    if request.method == 'POST':
-        form = PasswordChangeForm(data=request.POST, user=request.user)
-
-        if form.is_valid():
-            form.save()
-            update_session_auth_hash(request, form.user)
-            return redirect(reverse_lazy('personal-area'))
-        else:
-            return redirect(reverse_lazy('password-change'))
-    else:
-        form = PasswordChangeForm(user=request.user)
-
-        args = {'form': form}
-        return render(request, 'password_change.html', args)

@@ -8,6 +8,7 @@ django = "~=3.2.9"
 django-ckeditor = "~=6.2.0"
 django-filter = "~=21.1"
 articles = "*"
+django-environ = "*"
 
 [dev-packages]
 django-debug-toolbar = "~=3.2.3"

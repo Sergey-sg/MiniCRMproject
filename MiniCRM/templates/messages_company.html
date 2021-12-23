@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Messages of {{ message.project.company }}{% endblock %}
+
+{% block content %}
+
+   <div class="container">
+     <h3>Comments: </h3>
+        <br>
+      <div class="row" style="padding: 50px;">
+        <form method="get">
+          <input name="search" type="text" placeholder="Search comments...">
+          <input type="submit" />
+        </form>
+      </div>
+
+      <div class="row">
+        {% for message in object_list %}
+        <div class="media border p-3" style="margin-bottom: 15px">
+                <div class="media-body">
+                <h4>manager: {{ message.manager }} <small><i class="text-muted">posted on {{ message.created }}</i></small></h4>
+                <div class="text-muted">project company: {{ message.project.company }} -- project: {{ message.project }}</div>
+                <div class="text-muted">communication options: {{ message.communication_options }}</div>
+                <p>{{ message.message | safe | striptags| linebreaks | slice:':400' }}</p>
+                <a href="{% url 'message_detail' message.pk %}">
+                    <button type="button" class="btn btn-primary" style="margin-left: 15px; float: right">
+                        detail commit
+                    </button>
+                </a>
+                {% include 'add_like_message.html' with message_id=message.pk %}
+            </div>
+        </div>
+        {% endfor %}
+      </div>
+   </div>
+
+{% endblock %}

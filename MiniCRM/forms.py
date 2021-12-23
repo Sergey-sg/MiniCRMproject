@@ -1,16 +1,15 @@
-from ckeditor.fields import RichTextField
 from django import forms
-from django.contrib.auth.forms import UserChangeForm as UserChange, ReadOnlyPasswordHashField, PasswordChangeForm
+from django.contrib.auth.forms import UserChangeForm as UserChange
 from django.forms import fields, inlineformset_factory
 
 from .models import Company, ProjectCompany, PhoneCompany, EmailCompany, Message, User
 
 
-class CompanyOverallForm(forms.ModelForm):
+class CompanyCreateForm(forms.ModelForm):
 
     class Meta:
         model = Company
-        fields = '__all__'
+        fields = ('name', 'description', 'contact_person', 'position_person', 'address')
 
 
 PhoneCompanyInlineFormset = inlineformset_factory(
@@ -30,7 +29,7 @@ EmailCompanyInlineFormset = inlineformset_factory(
 )
 
 
-class ProjectOverallForm(forms.ModelForm):
+class ProjectCreateForm(forms.ModelForm):
     """
     Form for editing information about the project.
         attributes:
@@ -40,15 +39,12 @@ class ProjectOverallForm(forms.ModelForm):
             deadline (datetime): the date of deadline
             price (int): price project
     """
-    name = forms.CharField(max_length=300)
-    description = RichTextField(blank=True, null=True, help_text="Project description")
     start_dates = fields.DateField(widget=forms.widgets.DateInput(attrs={'type': 'date'}), help_text="Enter the date of start project")
     deadline = fields.DateField(widget=forms.widgets.DateInput(attrs={'type': 'date'}), help_text="Enter the date of deadline")
-    price = forms.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         model = ProjectCompany
-        fields = '__all__'
+        exclude = ('user', )
 
 
 class MessageForm(forms.ModelForm):
@@ -57,16 +53,7 @@ class MessageForm(forms.ModelForm):
     """
     class Meta:
         model = Message
-        fields = '__all__'
-
-
-class MessageChangeForm(forms.ModelForm):
-    """
-    Form for creat message of project.
-    """
-    class Meta:
-        model = Message
-        fields = ('message', 'communication_options')
+        fields = ('message', 'communication_options', )
 
 
 class MessageSearchForm(forms.ModelForm):
@@ -80,4 +67,4 @@ class MessageSearchForm(forms.ModelForm):
 class UserUpdateForm(UserChange):
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'password')
+        fields = ('first_name', 'last_name', 'user_photo', 'email', 'password')
