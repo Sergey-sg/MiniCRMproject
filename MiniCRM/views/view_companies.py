@@ -50,7 +50,6 @@ class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
     template_name = 'company_update_form.html'
     permission_required = 'MiniCRM.change_company'
 
-    # def get_object(self, *args, **kwargs):
     def get_queryset(self, *args, **kwargs):
         queryset = super(CompanyUpdateView, self).get_queryset()
         return queryset.filter(user=self.request.user)
@@ -85,7 +84,7 @@ class CompanyCreateView(CreateView):
     template_name = 'company_create.html'
     permission_required = 'MiniCRM.change_company'
 
-    def get(self, **kwargs):
+    def get(self, *args, **kwargs):
         self.object = None
         form_class = self.get_form_class()
         form = self.get_form(form_class)

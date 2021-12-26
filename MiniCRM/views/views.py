@@ -101,7 +101,7 @@ class MessageUpdateView(RedirectPermissionRequiredMixin, UpdateView):
 
     def get_queryset(self, *args, **kwargs):
         queryset = super(MessageUpdateView, self).get_queryset()
-        return queryset.filter(user=self.request.user)
+        return queryset.filter(manager=self.request.user)
 
 
 class ProjectWithMessageListView(RedirectPermissionRequiredMixin, ListView):
@@ -129,6 +129,7 @@ class ProjectWithMessageListView(RedirectPermissionRequiredMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         context = super(ProjectWithMessageListView, self).get_context_data(**kwargs)
         context['message_form'] = MessageForm() # called in project_detail_with_comments.html with action='message_created'
+        context['project'] = ProjectCompany.objects.get(pk=self.kwargs['pk'])
         return context
 
 
