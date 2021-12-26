@@ -128,7 +128,7 @@ class ProjectWithMessageListView(RedirectPermissionRequiredMixin, ListView):
 
     def get_context_data(self, *args, **kwargs):
         context = super(ProjectWithMessageListView, self).get_context_data(**kwargs)
-        context['message_form'] = MessageForm() # call in project_detail_with_comments.html with action='message_created'
+        context['message_form'] = MessageForm() # called in project_detail_with_comments.html with action='message_created'
         return context
 
 

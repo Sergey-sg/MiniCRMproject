@@ -9,7 +9,7 @@ def is_liked(context, company_id):
     request = context['request']
     try:
         company_likes = CompanyLikes.objects.get(company_id=company_id, liked_by=request.user.id).like
-    except Exception as e:
+    except Exception:
         return False
     if company_likes:
         return True
@@ -22,7 +22,7 @@ def is_disliked(context, company_id):
     request = context['request']
     try:
         company_dislikes = CompanyDisLike.objects.get(company_id=company_id, disliked_by=request.user.id).dislike
-    except Exception as e:
+    except Exception:
         return False
     if company_dislikes:
         return True
@@ -57,7 +57,7 @@ def is_liked_message(context, message_id):
     request = context['request']
     try:
         message_likes = MessageLike.objects.get(message=message_id, liked_by=request.user.id).like
-    except Exception as e:
+    except Exception:
         message_likes = False
     return message_likes
 
@@ -67,7 +67,7 @@ def is_disliked_message(context, message_id):
     request = context['request']
     try:
         message_dislikes = MessageDisLike.objects.get(message_id=message_id, disliked_by=request.user.id).dislike
-    except Exception as e:
+    except Exception:
         return False
     if message_dislikes:
         return True

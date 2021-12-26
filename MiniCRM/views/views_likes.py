@@ -1,82 +1,22 @@
 from django.shortcuts import redirect
 from django.views import View
 
-from ..models import Company, Message, CompanyLikes, CompanyDisLike, MessageLike, MessageDisLike
+from ..models import CompanyLikes, CompanyDisLike, MessageLike, MessageDisLike
+from ..utils import LikeMixins
 
 
-class AddLikeView(View):
+class AddLikeView(LikeMixins, View):
     """
     Adds likes
     """
     def post(self, *args, **kwargs):
-        if 'company_id' in self.request.POST:
-            obj_id = self.request.POST.get('company_id')
-            obj_inst = Company.objects.get(id=obj_id)
-            like = CompanyLikes
-            dislike = CompanyDisLike
-        else:
-            obj_id = self.request.POST.get('message_id')
-            obj_inst = Message.objects.get(id=obj_id)
-            like = MessageLike
-            dislike = MessageDisLike
-        try:
-            if 'company_id' in self.request.POST:
-                obj_like_inst = like.objects.get(company=obj_inst, liked_by=self.request.user)
-                obj_dislike = dislike.objects.get(company=obj_inst, disliked_by=self.request.user)
-            else:
-                obj_like_inst = like.objects.get(message=obj_inst, liked_by=self.request.user)
-                obj_dislike = dislike.objects.get(message=obj_inst, disliked_by=self.request.user)
-            obj_like_inst.like = True
-            obj_like_inst.save()
-            obj_dislike.dislike = False
-            obj_dislike.save()
-        except Exception:
-            if 'company_id' in self.request.POST:
-                obj_like = like(company=obj_inst, liked_by=self.request.user, like=True)
-                obj_dislike = dislike(company=obj_inst, disliked_by=self.request.user, dislike=False)
-            else:
-                obj_like = like(message=obj_inst, liked_by=self.request.user, like=True)
-                obj_dislike = dislike(message=obj_inst, disliked_by=self.request.user, dislike=False)
-            obj_like.save()
-            obj_dislike.save()
-        return redirect(self.request.META.get('HTTP_REFERER'))
-
-
-class AddDisLikeView(View):
-    """
-    Adds dislikes.
-    """
-    def post(self, *args, **kwargs):
-        if 'company_id' in self.request.POST:
-            obj_id = self.request.POST.get('company_id')
-            obj_inst = Company.objects.get(id=obj_id)
-            like = CompanyLikes
-            dislike = CompanyDisLike
-        else:
-            obj_id = self.request.POST.get('message_id')
-            obj_inst = Message.objects.get(id=obj_id)
-            like = MessageLike
-            dislike = MessageDisLike
-        try:
-            if 'company_id' in self.request.POST:
-                obj_like_inst = like.objects.get(company=obj_inst, liked_by=self.request.user)
-                obj_dislike = dislike.objects.get(company=obj_inst, disliked_by=self.request.user)
-            else:
-                obj_like_inst = like.objects.get(message=obj_inst, liked_by=self.request.user)
-                obj_dislike = dislike.objects.get(message=obj_inst, disliked_by=self.request.user)
-            obj_like_inst.like = False
-            obj_like_inst.save()
-            obj_dislike.dislike = True
-            obj_dislike.save()
-        except Exception:
-            if 'company_id' in self.request.POST:
-                obj_like = like(company=obj_inst, liked_by=self.request.user, like=False)
-                obj_dislike = dislike(company=obj_inst, disliked_by=self.request.user, dislike=True)
-            else:
-                obj_like = like(message=obj_inst, liked_by=self.request.user, like=False)
-                obj_dislike = dislike(message=obj_inst, disliked_by=self.request.user, dislike=True)
-            obj_like.save()
-            obj_dislike.save()
+        like_dislike = self.get_like_dislike(self.request)
+        obj_like = like_dislike['obj_like']
+        obj_dislike = like_dislike['obj_dislike']
+        obj_like.like = True
+        obj_dislike.dislike = False
+        obj_like.save()
+        obj_dislike.save()
         return redirect(self.request.META.get('HTTP_REFERER'))
 
 
@@ -100,6 +40,21 @@ class RemoveLikeView(View):
             obj_dislike = dislike.objects.get(message=obj_like.message, disliked_by=self.request.user)
         obj_like.delete()
         obj_dislike.delete()
+        return redirect(self.request.META.get('HTTP_REFERER'))
+
+
+class AddDisLikeView(LikeMixins, View):
+    """
+    Adds dislikes.
+    """
+    def post(self, *args, **kwargs):
+        like_dislike = self.get_like_dislike(self.request)
+        obj_like = like_dislike['obj_like']
+        obj_dislike = like_dislike['obj_dislike']
+        obj_like.like = False
+        obj_like.save()
+        obj_dislike.dislike = True
+        obj_dislike.save()
         return redirect(self.request.META.get('HTTP_REFERER'))
 
 
