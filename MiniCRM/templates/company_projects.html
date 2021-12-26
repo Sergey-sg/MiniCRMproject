@@ -9,7 +9,7 @@
               {% for project in project_company_list %}
                 <div class="card col-12 mx-auto col-md-5 col-lg-4">
                   <div class="card-body">
-                    {% if group.name == 'manager' or request.user.is_staff %}
+                    {% if request.user.groups.first.name == 'manager' or request.user.is_staff %}
                         <h5 class="card-title"><a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a></h5>
                     {% else %}
                         <h5 class="card-title">{{ project.name }}</h5>
