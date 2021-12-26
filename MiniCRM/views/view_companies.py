@@ -50,6 +50,7 @@ class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
     template_name = 'company_update_form.html'
     permission_required = 'MiniCRM.change_company'
 
+    # def get_object(self, *args, **kwargs):
     def get_queryset(self, *args, **kwargs):
         queryset = super(CompanyUpdateView, self).get_queryset()
         return queryset.filter(user=self.request.user)
@@ -64,40 +65,67 @@ class CompanyUpdateView(RedirectPermissionRequiredMixin, UpdateView):
             context['email_form'] = EmailCompanyInlineFormset(instance=self.object)
         return context
 
+    def form_valid(self, form):
+        context = self.get_context_data()
+        phone_form = context['phone_form']
+        email_form = context['email_form']
+        if phone_form.is_valid() and email_form.is_valid():
+            self.object = form.save()
+            phone_form.company = self.object
+            phone_form.save()
+            email_form.company = self.object
+            email_form.save()
+        return super(CompanyUpdateView, self).form_valid(form)
 
-class CompanyCreateView(RedirectPermissionRequiredMixin, CreateView):
-    """
-    Displays a form for create a company
-    """
+
+class CompanyCreateView(CreateView):
+
     model = Company
     form_class = CompanyCreateForm
     template_name = 'company_create.html'
     permission_required = 'MiniCRM.change_company'
 
-    def get_context_data(self, **kwargs):
-        form = CompanyCreateForm()
+    def get(self, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
         phone_form = PhoneCompanyInlineFormset()
         email_form = EmailCompanyInlineFormset()
-        return {'form': form, 'phone_form': phone_form, 'email_form': email_form}
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  phone_form=phone_form,
+                                  email_form=email_form))
 
     def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        phone_form = PhoneCompanyInlineFormset(request.POST)
-        email_form = EmailCompanyInlineFormset(request.POST)
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        phone_form = PhoneCompanyInlineFormset(self.request.POST)
+        email_form = EmailCompanyInlineFormset(self.request.POST)
         if form.is_valid() and phone_form.is_valid() and email_form.is_valid():
             return self.form_valid(form, phone_form, email_form)
         else:
-            return self.form_invalid(form)
+            return self.form_invalid(form, phone_form, email_form)
 
-    def form_valid(self, form, *args, **kwargs):
+    def form_valid(self, form, *args):
         object_form = form.save(commit=False)
         object_form.user = self.request.user
         object_form.save()
-        for inlineform in args:
-            inlineform_object = inlineform[0].save(commit=False)
-            inlineform_object.company = object_form
-            inlineform_object.save()
+        for inlineforms in args:
+            for inlineform in inlineforms:
+                try:
+                    inlineform_object = inlineform.save(commit=False)
+                    inlineform_object.company = object_form
+                    inlineform_object.save()
+                except Exception:
+                    pass
         return super(CompanyCreateView, self).form_valid(form)
+
+    def form_invalid(self, form, *args):
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  phone_form=args[0],
+                                  email_form=args[1]))
 
 
 class MessageCompanyListView(RedirectPermissionRequiredMixin, ListView):

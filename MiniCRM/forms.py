@@ -17,7 +17,7 @@ PhoneCompanyInlineFormset = inlineformset_factory(
     PhoneCompany,
     fields=('phone_number', ),
     extra=2,
-    can_delete=False,
+    can_delete_extra=False,
 )
 
 EmailCompanyInlineFormset = inlineformset_factory(
@@ -25,7 +25,7 @@ EmailCompanyInlineFormset = inlineformset_factory(
     EmailCompany,
     fields=('email', ),
     extra=2,
-    can_delete=False,
+    can_delete_extra=False,
 )
 
 
