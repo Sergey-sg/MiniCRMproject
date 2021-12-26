@@ -2,23 +2,25 @@
 {% block title %}{{ project.name }}{% endblock %}
 {% block content %}
 
+{% if not page_obj.has_previous %}
     <div class="container mx-auto" style="margin: 15px">
-    <h1 class="text-center">{{ project.name }}</h1>
+    <h1 class="text-center">{{ object_list.first.project.name }}</h1>
             <br>
-            <h3>Performing company: <a href="{% url 'company_detail' project.company.pk %}">{{ project.company.name }}</a></h3>
+            <h3>Performing company: <a href="{% url 'company_detail' object_list.first.project.company.pk %}">{{ object_list.first.project.company.name }}</a></h3>
             <br>
             <h3 class="text-center">About project</h3>
             <br>
-            <p class="text-center">{{ project.description | safe | striptags| linebreaks }}</p>
-            <div class="text-muted">Start dates: <b class="text-dark">{{ project.start_dates }}</b></div>
-            <div class="text-muted">Deadline: <b class="text-dark">{{ project.deadline }}</b></div>
+            <p class="text-center">{{ object_list.first.project.description | safe | striptags| linebreaks }}</p>
+            <div class="text-muted">Start dates: <b class="text-dark">{{ object_list.first.project.start_dates }}</b></div>
+            <div class="text-muted">Deadline: <b class="text-dark">{{ object_list.first.project.deadline }}</b></div>
             <br>
-            <div class="text-muted">Price: <b class="text-dark">${{ project.price }}</b></div>
-</div>
+            <div class="text-muted">Price: <b class="text-dark">${{ object_list.first.project.price }}</b></div>
+    </div>
+{% endif %}
 <div class="container">
  <h3>Comments: </h3>
     <div class="container" style="padding-bottom: 30px">
-        <form action="{% url 'message_create' project.pk %}" method="post">
+        <form action="{% url 'message_create' object_list.first.project.pk %}" method="post">
             {% csrf_token %}
             <table>
                 <tr>Your new comment:<br>{{ message_form.message }}</tr>
@@ -27,7 +29,9 @@
             <input type="submit" value="Submit" />
         </form>
     </div>
+
     <br>
+{% if object_list %}
   <div class="row" style="padding: 50px;">
     <form method="get">
       <input name="search" type="text" placeholder="Search comments...">
@@ -53,6 +57,7 @@
     </div>
     {% endfor %}
   </div>
+{% endif %}
 </div>
 
 {% endblock %}

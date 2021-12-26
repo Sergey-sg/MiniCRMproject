@@ -11,11 +11,9 @@
     {% message_dislikes_id message_id as message_dislikes_id %}
 {% endif %}
 
-<form style="float: left" action="{% if not is_liked_bool %}{% url 'add-message-like' %}{% else %}{% url 'remove-message-like' %}{% endif %}" method="post">
+<form style="float: left" action="{% if not is_liked_bool %}{% url 'add' %}{% else %}{% url 'remove' %}{% endif %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="message_id" value="{{ message_id }}">
-    <input type="hidden" name="user_id" value="{{ request.user.id }}">
-    <input type="hidden" name="url_form" value="{{ request.path }}">
 
     {% if is_liked_bool %}
         <input type="hidden" name="message_likes_id" value="{{ message_likes_id }}">
@@ -34,11 +32,9 @@
         <span class="likes-qty">{{ likes_counter }}</span>
     </button>
 </form>
-<form action="{% if not is_disliked_bool %}{% url 'add_message_dislike' %}{% else %}{% url 'remove_message_dislike' %}{% endif %}" method="post">
+<form action="{% if not is_disliked_bool %}{% url 'add_dislike' %}{% else %}{% url 'remove_dislike' %}{% endif %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="message_id" value="{{ message_id }}">
-    <input type="hidden" name="user_id" value="{{ request.user.id }}">
-    <input type="hidden" name="url_form" value="{{ request.path }}">
 
     {% if is_disliked_bool %}
         <input type="hidden" name="message_dislikes_id" value="{{ message_dislikes_id }}">

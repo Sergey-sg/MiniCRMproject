@@ -4,8 +4,7 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 
 from MiniCRM.filters import CompanyFilter
-from MiniCRM.forms import CompanyCreateForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset, MessageForm,\
-    MessageSearchForm
+from MiniCRM.forms import CompanyCreateForm, PhoneCompanyInlineFormset, EmailCompanyInlineFormset, MessageForm
 from MiniCRM.models import Company, Message
 from MiniCRM.views.views import RedirectPermissionRequiredMixin
 
@@ -81,9 +80,23 @@ class CompanyCreateView(RedirectPermissionRequiredMixin, CreateView):
         email_form = EmailCompanyInlineFormset()
         return {'form': form, 'phone_form': phone_form, 'email_form': email_form}
 
-    def form_valid(self, form):
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        phone_form = PhoneCompanyInlineFormset(request.POST)
+        email_form = EmailCompanyInlineFormset(request.POST)
+        if form.is_valid() and phone_form.is_valid() and email_form.is_valid():
+            return self.form_valid(form, phone_form, email_form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form, *args, **kwargs):
         object_form = form.save(commit=False)
         object_form.user = self.request.user
+        object_form.save()
+        for inlineform in args:
+            inlineform_object = inlineform[0].save(commit=False)
+            inlineform_object.company = object_form
+            inlineform_object.save()
         return super(CompanyCreateView, self).form_valid(form)
 
 
@@ -91,7 +104,6 @@ class MessageCompanyListView(RedirectPermissionRequiredMixin, ListView):
     """
     Generates a list of all messages of company projects
     """
-    form_class = MessageSearchForm
     context_object_name = 'object_list'
     template_name = "messages_company.html"
     paginate_by = 5
@@ -111,7 +123,5 @@ class MessageCompanyListView(RedirectPermissionRequiredMixin, ListView):
 
     def get_context_data(self, *args, **kwargs):
         context = super(MessageCompanyListView, self).get_context_data(**kwargs)
-        form = MessageSearchForm()
-        context['form'] = form
         context['message_form'] = MessageForm()
         return context

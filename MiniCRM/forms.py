@@ -33,11 +33,8 @@ class ProjectCreateForm(forms.ModelForm):
     """
     Form for editing information about the project.
         attributes:
-            name (str): name project
-            description (str): project description
             start_dates (datetime): the date of start project
             deadline (datetime): the date of deadline
-            price (int): price project
     """
     start_dates = fields.DateField(widget=forms.widgets.DateInput(attrs={'type': 'date'}), help_text="Enter the date of start project")
     deadline = fields.DateField(widget=forms.widgets.DateInput(attrs={'type': 'date'}), help_text="Enter the date of deadline")
@@ -54,14 +51,6 @@ class MessageForm(forms.ModelForm):
     class Meta:
         model = Message
         fields = ('message', 'communication_options', )
-
-
-class MessageSearchForm(forms.ModelForm):
-    search = forms.TextInput()
-
-    class Meta:
-        model = Message
-        fields = ('message',)
 
 
 class UserUpdateForm(UserChange):

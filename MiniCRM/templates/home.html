@@ -34,8 +34,7 @@
                               Company projects
                           </button>
                       </a>
-                  {% for group in request.user.groups.all %}
-                    {% if group.name == 'manager' %}
+                    {% if request.user.is_superuser or request.user.groups.first.name == 'manager' %}
                       <a href="{% url 'company-messages' company.pk %}">
                           <button type="button" class="btn btn-primary text-black" style="margin-top: 15px">
                               Company messages of all projects
@@ -49,7 +48,6 @@
                           </button>
                       </a>
                     {% endif %}
-                    {% endfor %}
                   </div>
                 </div>
                 <br>

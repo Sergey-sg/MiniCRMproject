@@ -8,7 +8,7 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 
-from MiniCRM.forms import ProjectCreateForm, MessageForm, MessageSearchForm, UserUpdateForm
+from MiniCRM.forms import ProjectCreateForm, MessageForm, UserUpdateForm
 from MiniCRM.models import Company, ProjectCompany, Message, User
 
 
@@ -46,6 +46,7 @@ class ProjectCompanyCreate(RedirectPermissionRequiredMixin, CreateView):
     def form_valid(self, form):
         object_form = form.save(commit=False)
         object_form.user = self.request.user
+        object_form.save()
         return super(ProjectCompanyCreate, self).form_valid(form)
 
 
@@ -76,6 +77,7 @@ class MessageCreateView(RedirectPermissionRequiredMixin, CreateView):
         object_form = form.save(commit=False)
         object_form.manager = self.request.user
         object_form.project = ProjectCompany.objects.get(pk=self.kwargs.get('pk'))
+        object_form.save()
         return super(MessageCreateView, self).form_valid(form)
 
 
@@ -105,17 +107,15 @@ class MessageUpdateView(RedirectPermissionRequiredMixin, UpdateView):
 class ProjectWithMessageListView(RedirectPermissionRequiredMixin, ListView):
     """
     Generates a list of messages for project and send to context
-        'form' - form for search messages(comments);
-        'message_form' - form for created new message;
-        'project' - project object
+        'message_form' - form for created new message
     """
     permission_required = 'MiniCRM.change_company'
     template_name = 'project_detail_with_comments.html'
     paginate_by = 2
-    form_class = MessageSearchForm
     context_object_name = 'object_list'
 
     def get_queryset(self, *args, **kwargs):
+        """filter messages with input-search"""
         queryset = Message.objects.filter(project=self.kwargs['pk']).order_by('-created')
         try:
             search_string = self.request.GET['search'].split()
@@ -128,11 +128,7 @@ class ProjectWithMessageListView(RedirectPermissionRequiredMixin, ListView):
 
     def get_context_data(self, *args, **kwargs):
         context = super(ProjectWithMessageListView, self).get_context_data(**kwargs)
-        form = MessageSearchForm()
-        project = ProjectCompany.objects.get(pk=self.kwargs['pk'])
-        context['form'] = form
-        context['message_form'] = MessageForm()
-        context['project'] = project
+        context['message_form'] = MessageForm() # call in project_detail_with_comments.html with action='message_created'
         return context
 
 
