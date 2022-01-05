@@ -32,6 +32,8 @@ urlpatterns = [
             path('remove-dislike/', views_likes.RemoveDisLikeView.as_view(), name='remove_dislike'),
             ],)),
     path('accounts/', include([
+        path('login/', views.CustomLoginView.as_view(), name='login'),
+        path('create/', views.UserCreateView.as_view(), name='create_user'),
         path('profile/', views.PersonalArea.as_view(), name='personal-area'),
         path('change/', views.UserChangeView.as_view(), name='user-change'),
         path('password/', views.MyPasswordChangeView.as_view(), name='password-change'),

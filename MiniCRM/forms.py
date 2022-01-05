@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserChangeForm as UserChange
+from django.contrib.auth.forms import UserChangeForm as UserChange, UserCreationForm
 from django.forms import fields, inlineformset_factory
 
 from .models import Company, ProjectCompany, PhoneCompany, EmailCompany, Message, User
@@ -57,3 +57,10 @@ class UserUpdateForm(UserChange):
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'user_photo', 'email', 'password')
+
+
+class CustomUserCreationForm(UserCreationForm):
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name', 'user_photo', )
