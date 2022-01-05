@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+   Account login
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Account login</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            {{ login_form.as_p }}
+            <input type="submit" class="btn btn-primary" value="login" />
+            <input type="hidden" name="next" value="{{ next }}" />
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+<br>
+<div class="container" style="padding-bottom: 30px">
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <table>
+            {{ form.as_p }}
+        </table>
+        <input type="submit" value="Submit" />
+    </form>
+</div>
+
+{% endblock %}
