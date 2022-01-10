@@ -27,7 +27,7 @@
                     </li>
                 {% endif %}
             {% endfor %}
-                {% if request.user.is_authenticated and request.user.first_name %}
+                {% if request.user.is_authenticated  %}
                     <li class="nav-item">
                         <span class="nav-link text-light text-uppercase font-weight-bold px-3">
                             <a href="{% url 'personal-area' %}">Welcome, {{ request.user.first_name }}!</a> <i class="material-icons cart-icon">account_circle</i>

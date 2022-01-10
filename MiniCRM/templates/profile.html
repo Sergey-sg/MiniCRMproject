@@ -9,21 +9,20 @@
     <br>
     <div>full name: {{ request.user.first_name }} {{ request.user.last_name }}</div>
     <br><div>email: {{ request.user.email }}</div>
-     {% for group in request.user.groups.all %}
-        {% if group.name == 'manager' %}
-              <form method="get">
-                 <li class="dropdown">
-                     <a class="nav-link text-black text-uppercase font-weight-bold px-3 dropdown-toggle" role="button" data-bs-toggle="dropdown" href="#">
-                         Change your objects
-                     </a>
-                     <ul class="dropdown-menu">
-                         <li><input class="bg-primary" name="personal_object" type="radio" value="companies">  companies</li>
-                         <li><input class="bg-primary" name="personal_object" type="radio" value="projects">  projects</li>
-                         <li><input class="bg-primary" name="personal_object" type="radio" value="comments">  comments</li>
-                         <li><input type="submit"></li>
-                     </ul>
-                 </li>
-              </form>
+     {% if request.user.groups.first.name == 'manager' or request.user.is_staff %}
+         <form method="get">
+             <li class="dropdown">
+                 <a class="nav-link text-black text-uppercase font-weight-bold px-3 dropdown-toggle" role="button" data-bs-toggle="dropdown" href="#">
+                     Change your objects
+                 </a>
+                 <ul class="dropdown-menu">
+                     <li><input class="bg-primary" name="personal_object" type="radio" value="companies">  companies</li>
+                     <li><input class="bg-primary" name="personal_object" type="radio" value="projects">  projects</li>
+                     <li><input class="bg-primary" name="personal_object" type="radio" value="comments">  comments</li>
+                     <li><input type="submit"></li>
+                 </ul>
+             </li>
+         </form>
                 <div class="container">
                     {% for object in object_list %}
                         {% if 'comments' == request.GET.personal_object %}
@@ -105,6 +104,5 @@
                 </div>
                 <br>
         {% endif %}
-     {% endfor %}
  </div>
 {% endblock %}

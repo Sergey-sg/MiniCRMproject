@@ -1,5 +1,6 @@
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.models import Group
+from django.contrib.auth.views import PasswordChangeView, LoginView
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
@@ -8,7 +9,7 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 
-from MiniCRM.forms import ProjectCreateForm, MessageForm, UserUpdateForm
+from MiniCRM.forms import ProjectCreateForm, MessageForm, UserUpdateForm, CustomUserCreationForm
 from MiniCRM.models import Company, ProjectCompany, Message, User
 
 
@@ -187,3 +188,25 @@ class MyPasswordChangeView(RedirectPermissionRequiredMixin, PasswordChangeView):
 
     def get_success_url(self):
         return '/accounts/profile/'
+
+
+class CustomLoginView(LoginView):
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(CustomLoginView, self).get_context_data(**kwargs)
+        context['create_user_form'] = CustomUserCreationForm()
+        return context
+
+
+class UserCreateView(CreateView):
+    model = User
+    template_name = '../templates/registration/create_user.html'
+    form_class = CustomUserCreationForm
+    success_url = '/accounts/change/'
+
+    def form_valid(self, form, **kwargs):
+        object_form = form.save()
+        group = Group.objects.get(name='user')
+        object_form.groups.add(group)
+        object_form.save()
+        return super(UserCreateView, self).form_valid(form)
