@@ -1,19 +1,17 @@
 from django.test import TestCase
 
-from ..forms import ProjectCreateForm, CompanyCreateForm
+from ..forms import ProjectCreateForm
 
 
-class ProjectOverallFormTest(TestCase):
+class ProjectCreateFormTest(TestCase):
 
     def test_name_form_label(self):
         form = ProjectCreateForm()
-        self.assertTrue(
-            form.fields['name'].label == None or form.fields['name'].label == 'name')
+        self.assertEquals(form.fields['name'].label, None or 'Name')
 
     def test_description_form_label(self):
         form = ProjectCreateForm()
-        self.assertEquals(
-            form.fields['description'].label, None or 'Description')
+        self.assertEquals(form.fields['description'].label, None or 'Description')
 
     def test_description_help_text(self):
         form = ProjectCreateForm()
@@ -21,13 +19,11 @@ class ProjectOverallFormTest(TestCase):
 
     def test_start_dates_form_label(self):
         form = ProjectCreateForm()
-        self.assertTrue(
-            form.fields['start_dates'].label == None or form.fields['start_dates'].label == 'start_dates')
+        self.assertTrue(form.fields['start_dates'].label is None or form.fields['start_dates'].label == 'start_dates')
 
     def test_deadline_form_label(self):
         form = ProjectCreateForm()
-        self.assertTrue(
-            form.fields['deadline'].label == None or form.fields['deadline'].label == 'deadline')
+        self.assertTrue(form.fields['deadline'].label is None or form.fields['deadline'].label == 'deadline')
 
     def test_deadline_form_date_in_past(self):
         start_date = '2021-12-21'

@@ -2,7 +2,7 @@
 
 {% block content %}
 
-    {% load  %}
+{% load static %}
 
     <div class="container">
       {% if user.is_authenticated %}
@@ -11,43 +11,6 @@
       {% else %}
         <p>Please login to see this page.</p>
       {% endif %}
-
-
-
-<script src="https://bootstraptema.ru/plugins/jquery/jquery-1.11.3.min.js"></script>
-<script type="text/javascript" src="https://bootstraptema.ru/plugins/2015/b-v3-3-6/bootstrap.min.js"></script>
-<script src="https://bootstraptema.ru/_sf/3/394.js" type="text/javascript"></script>
-
-    <script>
-      $('body').on('click', '.password-checkbox', function(){
-          if ($(this).is(':checked')){
-              $('#password-input').attr('type', 'text');
-          } else {
-              $('#password-input').attr('type', 'password');
-          }
-      });
-    </script>
-
-    <script>
-      $('body').on('click', '.register-password1-checkbox', function(){
-          if ($(this).is(':checked')){
-              $('#register-password1-input').attr('type', 'text');
-          } else {
-              $('#register-password1-input').attr('type', 'password');
-          }
-      });
-    </script>
-
-    <script>
-      $('body').on('click', '.register-password2-checkbox', function(){
-          if ($(this).is(':checked')){
-              $('#register-password2-input').attr('type', 'text');
-          } else {
-              $('#register-password2-input').attr('type', 'password');
-          }
-      });
-    </script>
-
 
  <div class="container">
     <div class="row">
@@ -146,4 +109,10 @@
     </div>
  </div>
 </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://bootstraptema.ru/plugins/jquery/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="https://bootstraptema.ru/plugins/2015/b-v3-3-6/bootstrap.min.js"></script>
+<script src="https://bootstraptema.ru/_sf/3/394.js" type="text/javascript"></script>
+<script src="{% static 'script.js' %}"></script>
 {% endblock %}

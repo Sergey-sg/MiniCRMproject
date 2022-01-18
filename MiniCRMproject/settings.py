@@ -19,8 +19,6 @@ env = environ.Env(
   DEBUG=(bool, False)
 )
 
-
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -51,6 +49,7 @@ INSTALLED_APPS = [
     'ckeditor',
     'ckeditor_uploader',
     'django_filters',
+    'rest_framework',
     # my apps
     'MiniCRM.apps.MinicrmConfig',
 ]
@@ -157,3 +156,6 @@ AUTH_USER_MODEL = 'MiniCRM.User'
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
+
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = str(BASE_DIR.joinpath('sent_emails'))

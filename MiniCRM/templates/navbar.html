@@ -3,19 +3,7 @@
         <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbar"><span class="navbar-toggler-icon"></span></button>
         <div id="navbar" class="collapse navbar-collapse justify-content-between">
             <ul class="navbar-nav">
-            {% if request.user.is_superuser %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link text-light text-uppercase font-weight-bold px-3 dropdown-toggle" role="button" data-bs-toggle="dropdown" href="#">
-                            Create
-                        </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'company-create' %}">create company</a></li>
-                                <li><a class="dropdown-item" href="{% url 'project-create' %}">create project</a></li>
-                            </ul>
-                    </li>
-            {% endif %}
-            {% for group in  request.user.groups.all %}
-                {% if group.name == 'manager' %}
+                {% if request.user.groups.first.name == 'manager' or request.user.is_superuser %}
                     <li class="nav-item dropdown">
                         <a class="nav-link text-light text-uppercase font-weight-bold px-3 dropdown-toggle" role="button" data-bs-toggle="dropdown" href="#">
                             Create
@@ -26,11 +14,10 @@
                             </ul>
                     </li>
                 {% endif %}
-            {% endfor %}
                 {% if request.user.is_authenticated  %}
                     <li class="nav-item">
                         <span class="nav-link text-light text-uppercase font-weight-bold px-3">
-                            <a href="{% url 'personal-area' %}">Welcome, {{ request.user.first_name }}!</a> <i class="material-icons cart-icon">account_circle</i>
+                            <a href="{% url 'personal-area' %}">Welcome, {{ request.user.username }}!</a> <i class="material-icons cart-icon">account_circle</i>
                         </span>
                     </li>
                     <li class="nav-item">

@@ -12,11 +12,7 @@ class User(AbstractUser):
     user_photo = models.ImageField(upload_to='user_photo', default='default_user_photo.png', help_text="Profile Picture")
 
     def __str__(self):
-        if self.is_staff:
-            staff = " - staff"
-        else:
-            staff = ''
-        return f'{self.username}{staff}'
+        return self.username
 
     class Meta:
         verbose_name = 'user'
@@ -124,7 +120,7 @@ class ProjectCompany(models.Model):
     start_dates = models.DateField(null=True, blank=True, help_text="Enter the date of start project")
     deadline = models.DateField(null=True, blank=True, help_text="Enter the date of deadline")
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Enter price project")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def clean_fields(self, exclude=None):

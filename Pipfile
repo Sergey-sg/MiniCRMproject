@@ -10,9 +10,11 @@ django-filter = "~=21.1"
 articles = "*"
 django-environ = "*"
 Pillow = "*"
+djangorestframework = "~=3.13.1"
 
 [dev-packages]
 django-debug-toolbar = "~=3.2.3"
+coverage = "~=6.2"
 
 [requires]
 python_version = "3.8"
